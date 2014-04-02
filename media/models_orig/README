@@ -1,0 +1,4 @@
+This directory contains asteroid models downloaded from the 3d Asteroid
+Catalogue at http://space.frieger.com/asteroids/list.php
+These files are raw models, that cannot be used directly in pi3d, they must
+be passed through Blender to create a UV map
