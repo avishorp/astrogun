@@ -8,4 +8,4 @@ Kd 0.8 0.8 0.8
 Ks 0.8 0.8 0.8
 d 1
 illum 2
-map_Kd C:\temp\Generic_Celestia_asteroid_texture.jpg
+map_Kd ../textures/Generic_Celestia_asteroid_texture.jpg
