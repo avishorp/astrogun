@@ -10,6 +10,7 @@ import pi3d
 import time
 import models
 import asteroids
+import numpy
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(x=20, y=20,
@@ -44,39 +45,54 @@ for mf in models.asteroids[0:2]:
   model_list.append(m)
 
 # Instantiate an Asteroid Generator
-gen = asteroids.AsteroidGenerator(model_list, 0.1, None)
+  gen = asteroids.AsteroidGenerator(model_list, 1, None)
 active_asteroids = []
 
 # Fetch key presses
 mykeys = pi3d.Keyboard()
 
 t = time.time()
+now = t
 
-while DISPLAY.loop_running():
-  now = time.time()
-  ast = gen.generate_asteroid(now)
-  if ast is not None:
-    active_asteroids.append(ast)
+try:
+  while DISPLAY.loop_running():
+    now = time.time()
+    ast = gen.generate_asteroid(now)
+    if ast is not None:
+      active_asteroids.append(ast)
     
-  for mobj, mmotion in active_asteroids:
-    mobj.position(*(mmotion.location(now)))
-    mobj.draw()
+    objindex = 0
+    for mobj, mmotion in active_asteroids:
+      newpos = mmotion.location(now)
+      dist2_from_origin = newpos.dot(newpos)
+      if dist2_from_origin < 5.0:
+        # Reached origin, destory it
+        del active_asteroids[objindex]
+      else:
+        objindex += 1
+      
+      mobj.position(newpos[0], newpos[1], newpos[2])
+      mobj.draw()
 
-  k = mykeys.read()
-  if k >-1:
-    if k==260:
-      # Left
-      cam.rotateY(0.5)
-    elif k==261:
-      # Right
-      cam.rotateY(-0.5)
-    elif k==258:
-      # Down
-      cam.rotateX(-.5)
-    elif k==259:
-      # Up
-      cam.rotateX(-0.5)
-    elif k==27:
-      mykeys.close()
-      DISPLAY.destroy()
-      break
+    k = mykeys.read()
+    if k >-1:
+      if k==260:
+        # Left
+        cam.rotateY(0.5)
+      elif k==261:
+        # Right
+        cam.rotateY(-0.5)
+      elif k==258:
+        # Down
+        cam.rotateX(-.5)
+      elif k==259:
+        # Up
+        cam.rotateX(-0.5)
+      elif k==27:
+        mykeys.close()
+        DISPLAY.destroy()
+        break
+except:
+  mykeys.close()
+  DISPLAY.destroy()
+  raise

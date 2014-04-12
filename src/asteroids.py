@@ -1,17 +1,6 @@
 
-import time, random, math
-
-class PolarCoord:
-    def __init__(self, r, phi, tetha):
-        self.r = r
-        self.phi = phi
-        self.tetha = tetha
-        
-    def to_cartesian(self):
-        x = self.r * math.sin(self.tetha)*math.cos(self.phi)
-        y = self.r * math.sin(self.tetha)*math.sin(self.phi)
-        z = self.r * math.cos(self.tetha)
-        return (x, y, z)
+import time, random, math, numpy
+from util import LinearMotion, PolarCoord
 
 # Asteroid generation parametrs
 ###############################
@@ -20,25 +9,11 @@ PHI_RANGE = (0, math.pi)
 THETA_RANGE = (10.0/180.0*math.pi,170/180.0*math.pi)
 INITIAL_DISTANCE = 50
 
-class LinearMotion:
-    # initial_location - Object of class PolarCoord describing the
-    #                    initial location of the item
-    # speed - The speed of the item towards the origin
-    # t0 - The initial time
-    def __init__(self, initial_location, speed, t0):
-        self.loc = initial_location.to_cartesian()
-        speed_polar = PolarCoord(-speed, 
-                                 initial_location.phi,
-                                 initial_location.tetha)
-        self.speed = speed_polar.to_cartesian()
-        self.t0 = t0
-        
-    def location(self, t):
-        dt = t - self.t0
-        return (self.loc[0]+self.speed[0]*dt,
-                self.loc[1]+self.speed[1]*dt,
-                self.loc[2]+self.speed[2]*dt)
+PHI_RANGE = (0, 0.5)
+THERA_RANGE = (0.5,0.8)
 
+#PHI_RANGE = (0,0.1)
+#THETA_RANGE = (0,0.1)
 class AsteroidGenerator:
     """
     Generates shootable obects.
@@ -81,10 +56,12 @@ class AsteroidGenerator:
             #print("phi=%f tetha=%f speed=%f" % (phi, theta, speed))
             #print("x=%f y=%f z=%f" % PolarCoord(speed, phi, theta).to_cartesian())
             # Create a linear motion coordinator
-            m = LinearMotion(PolarCoord(INITIAL_DISTANCE, phi, theta), speed, now)
-            
+            initial_location = numpy.array(PolarCoord(INITIAL_DISTANCE, phi, theta).
+                                           to_cartesian())
+            m = LinearMotion(initial_location, numpy.array((0,0,0)), speed, now)
+           
             # Set the initial position
-            nobj.position(*(m.location(now)))
+            nobj.position(initial_location[0], initial_location[1], initial_location[2])
             
             # Calculate the next generation time
             self.calc_next_gen_time()
