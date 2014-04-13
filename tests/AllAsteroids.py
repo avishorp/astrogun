@@ -8,7 +8,7 @@ import sys
 sys.path.append('../src')
 import pi3d
 import time
-import models
+import asteroids
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(x=20, y=20,
@@ -23,7 +23,7 @@ dxy = 1.2
 pos = (-dxy, -dxy)
 global_scale = 0.6
 
-for mf in models.asteroids:
+for mf in asteroids.models:
   model_filename = mf[0]
   model_scale = mf[1]
   model_name = model_filename.split('.')[0] # Remove the .obj extention
