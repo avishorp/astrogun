@@ -4,7 +4,7 @@ from util import LinearMotion, PolarCoord
 
 # Asteroid generation parametrs
 ###############################
-SPEED_RANGE = (1.0, 3.0)
+SPEED_RANGE = (0.2, 0.4)
 PHI_RANGE = (0, math.pi)
 THETA_RANGE = (10.0/180.0*math.pi,170/180.0*math.pi)
 INITIAL_DISTANCE = 50

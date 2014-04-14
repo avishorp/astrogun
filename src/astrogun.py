@@ -10,6 +10,7 @@ import pi3d
 import time
 import asteroids
 import numpy
+import util
 
 # Global Game Settings
 ######################
@@ -23,14 +24,25 @@ SELF_IMPACT_RADIUS2 = 5
 # Impact raduis of an asteroid (squared)
 ASTEROID_IMPACT_RADIUS = 10
 
+# Bullet origin (the point from which the bullet starts)
+BULLET_ORIGIN = numpy.array([0.0, -5.0, 0.0])
+
+# The distance until which the bullet travels
+BULLET_DISTANCE = 80
+
+# The speed of a bullet
+BULLET_SPEED = 2
+
 ###### END GLOBAL SETTINGS ######
 
 class GameLevel:
-  def __init__(self, asteroid_model_list):
+  def __init__(self, asteroid_model_list, bullet_prototype):
     # Instantiate an Asteroid Generator
     self.gen = asteroids.AsteroidGenerator(asteroid_model_list, 1, None)
     self.active_asteroids = []
-
+    self.active_bullets = []
+    self.bullet_prototype = bullet_prototype
+    
   def play(self, keys):
     now = time.time()
 
@@ -58,6 +70,21 @@ class GameLevel:
         mobj.rotateIncX(0.2)
         mobj.rotateIncY(0.3)
         mobj.draw()
+
+      # Draw all active bullets
+      objindex = 0
+      for mobj, mmotion in self.active_bullets:
+        newpos = mmotion.location(now)
+        #  dist2_from_origin = newpos.dot(newpos)
+        #  if dist2_from_origin < SELF_IMPACT_RADIUS2:
+        #  # Reached origin, destory it
+        #  del self.active_asteroids[objindex]
+        #else:
+        #  objindex += 1
+      
+        # Position, rotate and draw the asteroid
+        mobj.position(newpos[0], newpos[1], newpos[2])
+        mobj.draw()
   
       # TEMPORARY CODE
       k = keys.read()
@@ -74,6 +101,17 @@ class GameLevel:
         elif k==259:
           # Up
           cam.rotateX(-0.5)
+        elif k==ord(' '):
+          eom = numpy.array([0.0, 0.0, BULLET_DISTANCE])
+          bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
+          p = self.bullet_prototype
+          bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
+                                    p.unif[3], p.unif[4], p.unif[5], p.unif[6], p.unif[7],
+                                    p.unif[8], p.unif[9], p.unif[10], p.unif[11])
+          bullet_model.buf = p.buf
+          bullet_model.shader = p.shader
+          bullet_model.textures = p.textures
+          self.active_bullets.append((bullet_model, bullet_motion))
         elif k==27:
           break
 
@@ -104,10 +142,20 @@ for mf in asteroids.models[0:3]:
   
   asteroid_model_list.append(m)
 
+bullet_prototype = pi3d.Cylinder(radius=1.0, height=2.0)
+bullet_prototype.set_shader(shader)
+
 # Fetch key presses
 mykeys = pi3d.Keyboard()
-level = GameLevel(asteroid_model_list)
-level.play(mykeys)
+level = GameLevel(asteroid_model_list, bullet_prototype)
+try:
+  level.play(mykeys)
+except:
+  mykeys.close()
+  DISPLAY.destroy()
+  raise
+
 mykeys.close()
 DISPLAY.destroy()
+
 

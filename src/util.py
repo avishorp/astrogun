@@ -21,7 +21,7 @@ class LinearMotion:
     def __init__(self, from_location, to_location, speed, t0):
         self.b = from_location
         self.t0 = t0
-        self.a = (to_location-from_location)*(1.0/5.0) #speed
+        self.a = (to_location-from_location)*speed
 
     def location(self, t):
         dt = t - self.t0
