@@ -11,6 +11,7 @@ import time
 import asteroids
 import numpy
 import util
+import math
 
 # Global Game Settings
 ######################
@@ -42,13 +43,14 @@ class GameLevel:
     self.active_asteroids = []
     self.active_bullets = []
     self.bullet_prototype = bullet_prototype
+    self.direction = (0.0, 0.0) # azimuth, inclination, in degrees
     
   def play(self, keys):
     now = time.time()
 
     while DISPLAY.loop_running():
       now = time.time()
-      
+
       # (possibly) generate a new asteroid
       ast = self.gen.generate_asteroid(now)
       if ast is not None:
@@ -91,18 +93,25 @@ class GameLevel:
       if k >-1:
         if k==260:
           # Left
-          cam.rotateY(0.5)
+          self.direction = (self.direction[0]-1, self.direction[1])
+          cam.rotateY(1)
         elif k==261:
           # Right
-          cam.rotateY(-0.5)
+          self.direction = (self.direction[0]+1, self.direction[1])
+          cam.rotateY(-1)
         elif k==258:
           # Down
-          cam.rotateX(-.5)
+          self.direction = (self.direction[0], self.direction[1]-1)
+          cam.rotateX(-1)
         elif k==259:
           # Up
-          cam.rotateX(-0.5)
+          self.direction = (self.direction[0], self.direction[1]+1)
+          cam.rotateX(1)
         elif k==ord(' '):
-          eom = numpy.array([0.0, 0.0, BULLET_DISTANCE])
+          eom = numpy.array([
+              BULLET_DISTANCE*math.sin(math.radians(self.direction[0])), 
+              BULLET_DISTANCE*math.sin(math.radians(self.direction[1])), 
+              BULLET_DISTANCE])
           bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
           p = self.bullet_prototype
           bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
@@ -112,6 +121,8 @@ class GameLevel:
           bullet_model.shader = p.shader
           bullet_model.textures = p.textures
           self.active_bullets.append((bullet_model, bullet_motion))
+        elif k==ord('1'):
+          cam.rotateX(360.0)
         elif k==27:
           break
 
@@ -142,7 +153,7 @@ for mf in asteroids.models[0:3]:
   
   asteroid_model_list.append(m)
 
-bullet_prototype = pi3d.Cylinder(radius=1.0, height=2.0)
+bullet_prototype = pi3d.Sphere(radius=0.5)
 bullet_prototype.set_shader(shader)
 
 # Fetch key presses
