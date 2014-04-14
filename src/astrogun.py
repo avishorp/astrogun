@@ -29,10 +29,11 @@ ASTEROID_IMPACT_RADIUS = 10
 BULLET_ORIGIN = numpy.array([0.0, -5.0, 0.0])
 
 # The distance until which the bullet travels
-BULLET_DISTANCE = 80
+BULLET_DISTANCE = 200.0
+BULLET_DISTANCE2 = BULLET_DISTANCE*BULLET_DISTANCE
 
 # The speed of a bullet
-BULLET_SPEED = 2
+BULLET_SPEED = 2.0
 
 ###### END GLOBAL SETTINGS ######
 
@@ -77,12 +78,12 @@ class GameLevel:
       objindex = 0
       for mobj, mmotion in self.active_bullets:
         newpos = mmotion.location(now)
-        #  dist2_from_origin = newpos.dot(newpos)
-        #  if dist2_from_origin < SELF_IMPACT_RADIUS2:
-        #  # Reached origin, destory it
-        #  del self.active_asteroids[objindex]
-        #else:
-        #  objindex += 1
+        dist2_from_origin = newpos.dot(newpos)
+        if dist2_from_origin > BULLET_DISTANCE2:
+          # Reached final distance, destroy it
+          del self.active_bullets[objindex]
+        else:
+          objindex += 1
       
         # Position, rotate and draw the asteroid
         mobj.position(newpos[0], newpos[1], newpos[2])
