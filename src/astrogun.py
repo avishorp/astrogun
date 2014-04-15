@@ -59,9 +59,10 @@ class GameLevel:
     
       # Draw all active asteroid
       objindex = 0
-      for mobj, mmotion in self.active_asteroids:
-        newpos = mmotion.location(now)
-        dist2_from_origin = newpos.dot(newpos)
+      for mobj in self.active_asteroids:
+        mobj.move(now)
+        dist2_from_origin = mobj.distance2()
+
         if dist2_from_origin < SELF_IMPACT_RADIUS2:
           # Reached origin, destory it
           del self.active_asteroids[objindex]
@@ -69,9 +70,6 @@ class GameLevel:
           objindex += 1
       
         # Position, rotate and draw the asteroid
-        mobj.position(newpos[0], newpos[1], newpos[2])
-        mobj.rotateIncX(0.2)
-        mobj.rotateIncY(0.3)
         mobj.draw()
 
       # Draw all active bullets

@@ -25,6 +25,34 @@ models = [
     ('SB_279.obj',                 1.0   )
     ]
 
+class Asteroid:
+    def __init__(self, base_model, azimuth, inclination, speed, t0):
+        self.base_model = base_model
+        self.azimuth = azimuth
+        self.inclination = inclination
+        self.speed = speed
+        initial_location = numpy.array(
+            PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
+        self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)
+           
+        # Set the initial position
+        self.base_model.position(initial_location[0], 
+                                 initial_location[1], 
+                                 initial_location[2])
+        
+    def draw(self):
+        self.base_model.draw()
+        
+    def move(self, t):
+        self.pos = self.motion.location(t)
+        self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
+        self.base_model.rotateIncX(0.2)
+        self.base_model.rotateIncY(0.3)
+        
+    def distance2(self):
+        return self.pos.dot(self.pos)
+
+
 class AsteroidGenerator:
     """
     Generates shootable obects.
@@ -63,22 +91,15 @@ class AsteroidGenerator:
             phi = random.uniform(*PHI_RANGE)
             theta = random.uniform(*THETA_RANGE)
             speed = random.uniform(*SPEED_RANGE)
-            
-            #print("phi=%f tetha=%f speed=%f" % (phi, theta, speed))
-            #print("x=%f y=%f z=%f" % PolarCoord(speed, phi, theta).to_cartesian())
-            # Create a linear motion coordinator
-            initial_location = numpy.array(PolarCoord(INITIAL_DISTANCE, phi, theta).
-                                           to_cartesian())
-            m = LinearMotion(initial_location, numpy.array((0,0,0)), speed, now)
-           
-            # Set the initial position
-            nobj.position(initial_location[0], initial_location[1], initial_location[2])
+
+            # Create the asteroid object
+            ast = Asteroid(nobj, phi, theta, speed, now)
             
             # Calculate the next generation time
             self.calc_next_gen_time()
             
             # Return the new asteroid
-            return (nobj, m)
+            return ast
         
         else:
             # Do not create anything
