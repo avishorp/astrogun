@@ -1,16 +1,7 @@
 
 import time, random, math, numpy
 from util import LinearMotion, PolarCoord
-
-# Asteroid generation parametrs
-###############################
-SPEED_RANGE = (0.2, 0.4)
-PHI_RANGE = (0, math.pi)
-THETA_RANGE = (10.0/180.0*math.pi,170/180.0*math.pi)
-INITIAL_DISTANCE = 50
-
-PHI_RANGE = (0, 0.5)
-THERA_RANGE = (0.5,0.8)
+from settings import SPEED_RANGE, PHI_RANGE, THETA_RANGE, INITIAL_DISTANCE
 
 # A list of all available asteroid models
 models = [
@@ -46,8 +37,8 @@ class Asteroid:
     def move(self, t):
         self.pos = self.motion.location(t)
         self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
-        self.base_model.rotateIncX(0.2)
-        self.base_model.rotateIncY(0.3)
+        #self.base_model.rotateIncX(0.2)
+        #self.base_model.rotateIncY(0.3)
         
     def distance2(self):
         return self.pos.dot(self.pos)

@@ -13,29 +13,8 @@ import numpy
 import util
 import math
 
-# Global Game Settings
-######################
+from settings import *
 
-# Number of "lives" the player has initially
-INITIAL_LIVES = 5
-
-# The impact radius of the player (squared)
-SELF_IMPACT_RADIUS2 = 5
-
-# Impact raduis of an asteroid (squared)
-ASTEROID_IMPACT_RADIUS = 10
-
-# Bullet origin (the point from which the bullet starts)
-BULLET_ORIGIN = numpy.array([0.0, -5.0, 0.0])
-
-# The distance until which the bullet travels
-BULLET_DISTANCE = 200.0
-BULLET_DISTANCE2 = BULLET_DISTANCE*BULLET_DISTANCE
-
-# The speed of a bullet
-BULLET_SPEED = 2.0
-
-###### END GLOBAL SETTINGS ######
 
 class GameLevel:
   def __init__(self, asteroid_model_list, bullet_prototype):
@@ -44,7 +23,8 @@ class GameLevel:
     self.active_asteroids = []
     self.active_bullets = []
     self.bullet_prototype = bullet_prototype
-    self.direction = (0.0, 0.0) # azimuth, inclination, in degrees
+    self.azimuth = 0.0
+    self.incl = 0.0
     
   def play(self, keys):
     now = time.time()
@@ -92,25 +72,28 @@ class GameLevel:
       if k >-1:
         if k==260:
           # Left
-          self.direction = (self.direction[0]-1, self.direction[1])
-          cam.rotateY(1)
+          self.azimuth -= 1.0
+          cam.rotateY(1.0)
         elif k==261:
           # Right
-          self.direction = (self.direction[0]+1, self.direction[1])
-          cam.rotateY(-1)
+          self.azimuth += 1.0
+          cam.rotateY(-1.0)
         elif k==258:
           # Down
-          self.direction = (self.direction[0], self.direction[1]-1)
           cam.rotateX(-1)
+          self.incl -= 1.0
         elif k==259:
           # Up
-          self.direction = (self.direction[0], self.direction[1]+1)
           cam.rotateX(1)
+          self.incl += 1.0
         elif k==ord(' '):
-          eom = numpy.array([
-              BULLET_DISTANCE*math.sin(math.radians(self.direction[0])), 
-              BULLET_DISTANCE*math.sin(math.radians(self.direction[1])), 
-              BULLET_DISTANCE])
+          eom = numpy.array(util.spher_to_cart(
+                self.azimuth, 
+                self.incl,
+                BULLET_DISTANCE
+                )).clip(1e-1)
+          print("%f %f" %(self.azimuth, self.incl))
+          print(eom)
           bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
           p = self.bullet_prototype
           bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
@@ -120,8 +103,13 @@ class GameLevel:
           bullet_model.shader = p.shader
           bullet_model.textures = p.textures
           self.active_bullets.append((bullet_model, bullet_motion))
+          
+          #cam.reset()
+          #tilt, rot = cam.point_at(eom)
+          #print("rot=%f azimuth=%f\n" % (rot, self.azimuth))
         elif k==ord('1'):
-          cam.rotateX(360.0)
+          cam.rotateY(25.0)
+          #self.azimuth = 25.0
         elif k==27:
           break
 
@@ -130,7 +118,7 @@ class GameLevel:
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(x=20, y=20,
                          background=(0, 0, 0, 1))
-cam = pi3d.Camera()
+cam = pi3d.Camera(at=[0.0, 0.0, 200.0], eye=[0.0, 0.0, 0.0])
 shader = pi3d.Shader("uv_flat")
 
 # Load all asteroid models 
