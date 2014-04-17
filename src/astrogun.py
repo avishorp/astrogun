@@ -8,7 +8,7 @@ import sys
 sys.path.append('../src')
 import pi3d
 import time
-import asteroids
+import asteroids, bullets
 import numpy, numpy.linalg
 import util
 import math
@@ -17,33 +17,21 @@ from settings import *
 
 
 class GameLevel:
-  def __init__(self, asteroid_model_list, bullet_prototype):
+  def __init__(self, asteroid_model_list, bullet_shader):
     # Instantiate an Asteroid Generator
     self.gen = asteroids.AsteroidGenerator(asteroid_model_list, 1, None)
+    self.bullet_gen = bullets.BulletGenerator(bullet_shader)
     self.active_asteroids = []
     self.active_bullets = []
-    self.bullet_prototype = bullet_prototype
     self.azimuth = 0.0
     self.incl = 0.0
 
   def create_bullet(self, now):
-    eom = numpy.array(util.spher_to_cart(
-        self.azimuth, 
-        self.incl,
-        BULLET_DISTANCE
-        )).clip(1e-1)
-    bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
-    p = self.bullet_prototype
-    bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
-                              p.unif[3], p.unif[4], p.unif[5], p.unif[6], p.unif[7],
-                              p.unif[8], p.unif[9], p.unif[10], p.unif[11])
-    bullet_model.buf = p.buf
-    bullet_model.shader = p.shader
-    bullet_model.textures = p.textures
-    self.active_bullets.append((bullet_model, bullet_motion))
+    b = self.bullet_gen.generate(self.azimuth, self.incl, now)
+    self.active_bullets.append(b)
     
     # For all asteroids, check if the bullet hits them
-    I = eom/numpy.linalg.norm(eom)
+    I = b.get_direction()
     indx = 0
     for ast in self.active_asteroids:
       if (self.check_incidence(ast, I)):
@@ -96,18 +84,16 @@ class GameLevel:
 
       # Draw all active bullets
       objindex = 0
-      for mobj, mmotion in self.active_bullets:
-        newpos = mmotion.location(now)
-        dist2_from_origin = newpos.dot(newpos)
+      for bull in self.active_bullets:
+        bull.move(now)
+        dist2_from_origin = bull.distance2()
         if dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it
           del self.active_bullets[objindex]
         else:
           objindex += 1
       
-        # Position, rotate and draw the asteroid
-        mobj.position(newpos[0], newpos[1], newpos[2])
-        mobj.draw()
+        bull.draw()
   
       # TEMPORARY CODE
       k = keys.read()
@@ -164,13 +150,10 @@ for mf in asteroids.models[0:3]:
   
   asteroid_model_list.append(m)
 
-bullet_prototype = pi3d.Sphere(radius=0.5)
-bullet_prototype.set_shader(shader)
-
 # Fetch key presses
 mykeys = pi3d.Keyboard()
-level = GameLevel(asteroid_model_list, bullet_prototype)
 try:
+  level = GameLevel(asteroid_model_list, shader)
   level.play(mykeys)
 except:
   mykeys.close()
