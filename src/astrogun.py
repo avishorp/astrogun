@@ -9,7 +9,7 @@ sys.path.append('../src')
 import pi3d
 import time
 import asteroids
-import numpy
+import numpy, numpy.linalg
 import util
 import math
 
@@ -25,7 +25,49 @@ class GameLevel:
     self.bullet_prototype = bullet_prototype
     self.azimuth = 0.0
     self.incl = 0.0
+
+  def create_bullet(self, now):
+    eom = numpy.array(util.spher_to_cart(
+        self.azimuth, 
+        self.incl,
+        BULLET_DISTANCE
+        )).clip(1e-1)
+    bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
+    p = self.bullet_prototype
+    bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
+                              p.unif[3], p.unif[4], p.unif[5], p.unif[6], p.unif[7],
+                              p.unif[8], p.unif[9], p.unif[10], p.unif[11])
+    bullet_model.buf = p.buf
+    bullet_model.shader = p.shader
+    bullet_model.textures = p.textures
+    self.active_bullets.append((bullet_model, bullet_motion))
     
+    # For all asteroids, check if the bullet hits them
+    I = eom/numpy.linalg.norm(eom)
+    indx = 0
+    for ast in self.active_asteroids:
+      if (self.check_incidence(ast, I)):
+        del self.active_asteroids[indx]
+      else:
+        indx += 1
+
+  # Check wheter a bullet will hit an asteroid. 
+  # asteroid - An Asteroid class object
+  # bullet - A unit vector designating the bullet direction
+  #
+  # The test is based on a line-sphere intersection test, as described
+  # in http://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+  # We are not interested in the full solution of the equation, only whether
+  # the term under square root is non-negative. Also, the bullets always
+  # originate at the origin (0,0,0) simplifying the equation further
+  def check_incidence(self, asteroid, bullet):
+    c = asteroid.get_position()
+    r = asteroid.radius
+    I = bullet
+    
+    sq = (I.dot(c))**2 - (I.dot(I)*(c.dot(c) - r**2))
+    return (sq >= 0)
+
   def play(self, keys):
     now = time.time()
 
@@ -87,26 +129,8 @@ class GameLevel:
           cam.rotateX(1)
           self.incl += 1.0
         elif k==ord(' '):
-          eom = numpy.array(util.spher_to_cart(
-                self.azimuth, 
-                self.incl,
-                BULLET_DISTANCE
-                )).clip(1e-1)
-          print("%f %f" %(self.azimuth, self.incl))
-          print(eom)
-          bullet_motion = util.LinearMotion(BULLET_ORIGIN, eom, BULLET_SPEED, now)
-          p = self.bullet_prototype
-          bullet_model = pi3d.Shape(cam, None, "ab", p.unif[0], p.unif[1], p.unif[2],
-                                    p.unif[3], p.unif[4], p.unif[5], p.unif[6], p.unif[7],
-                                    p.unif[8], p.unif[9], p.unif[10], p.unif[11])
-          bullet_model.buf = p.buf
-          bullet_model.shader = p.shader
-          bullet_model.textures = p.textures
-          self.active_bullets.append((bullet_model, bullet_motion))
-          
-          #cam.reset()
-          #tilt, rot = cam.point_at(eom)
-          #print("rot=%f azimuth=%f\n" % (rot, self.azimuth))
+          self.create_bullet(now)
+
         elif k==ord('1'):
           cam.rotateY(25.0)
           #self.azimuth = 25.0

@@ -22,6 +22,7 @@ class Asteroid:
         self.azimuth = azimuth
         self.inclination = inclination
         self.speed = speed
+        self.radius = 3   # TODO: Customize the radius for each model
         initial_location = numpy.array(
             PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
         self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)
@@ -37,11 +38,14 @@ class Asteroid:
     def move(self, t):
         self.pos = self.motion.location(t)
         self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
-        #self.base_model.rotateIncX(0.2)
-        #self.base_model.rotateIncY(0.3)
+        self.base_model.rotateIncX(0.2)
+        self.base_model.rotateIncY(0.3)
         
     def distance2(self):
         return self.pos.dot(self.pos)
+    
+    def get_position(self):
+        return self.pos
 
 
 class AsteroidGenerator:
