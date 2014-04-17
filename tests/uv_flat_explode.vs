@@ -217,7 +217,10 @@ void main(void) {
   float disp = 2.0;
   vec3 newpos;
   float time = unif[7].x;
-  newpos = vertex + normal*25.0*time*abs(cnoise(normal));
+
+  float gravity = 0.2 * time*time;
+  vec3 gravity_dir = vec3(0, -1.0, 0);
+  newpos = vertex + normal*15.0*time*abs(cnoise(normal)) + gravity*gravity_dir;
 
   texcoordout = texcoord * unib[2].xy + unib[3].xy;
   gl_Position = modelviewmatrix[1] * vec4(newpos,1.0);
