@@ -24,6 +24,7 @@ class GameLevel:
     self.active_asteroids = {}
     self.asteroid_id = 0
     self.active_bullets = []
+    self.hit_asteroids = []
     self.azimuth = 0.0
     self.incl = 0.0
 
@@ -34,9 +35,20 @@ class GameLevel:
     # For all asteroids, check if the bullet hits them
     I = b.get_direction()
     indx = 0
+    dest = None
+    
+    # Scan all the asteroids against incidence with the newly
+    # created bullet. If more than one asteroid incides with
+    # the bullet trajectory, pick the closest one
     for astid, ast in self.active_asteroids.items():
       if (self.check_incidence(ast, I)):
-        b.set_destination((astid, ast))
+        if dest is None:
+          dest = (astid, ast)
+        else:
+          if (ast.distance2() < dest[1].distance2()):
+            dest = (astid, ast)
+        
+    b.set_destination(dest)
 
   # Check wheter a bullet will hit an asteroid. 
   # asteroid - An Asteroid class object
@@ -72,11 +84,22 @@ class GameLevel:
         ast.move(now)
         dist2_from_origin = ast.distance2()
 
+        if ast.hit_mode:
+          if ast.hit_time > 8.0:
+            del self.active_asteroids[astid]
         if dist2_from_origin < SELF_IMPACT_RADIUS2:
           # Reached origin, destory it
           del self.active_asteroids[astid]
       
         # Position, rotate and draw the asteroid
+        ast.draw()
+
+      # Draw all hit asteroids
+      for ast in self.hit_asteroids:
+        ast.move(now)
+        if ast.hit_time > 8.0:
+          self.hit_asteroids[0]
+          
         ast.draw()
 
       # Draw all active bullets
@@ -86,11 +109,14 @@ class GameLevel:
         dest = bull.get_destination()
         dist2_from_origin = bull.distance2()
         
-        if dest is not None:
+        if (dest is not None) and (dest[0] in self.active_asteroids):
           ast_distance2 = dest[1].distance2()
           if dist2_from_origin > ast_distance2:
             # Bullet hit the asteroid
+
             del self.active_asteroids[dest[0]]
+            dest[1].hit(now)
+            self.hit_asteroids.append(dest[1])
             del self.active_bullets[objindex]
         elif dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it

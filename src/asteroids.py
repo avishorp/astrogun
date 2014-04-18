@@ -28,6 +28,7 @@ class Asteroid:
         initial_location = numpy.array(
             PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
         self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)
+        self.hit_mode = False
            
         # Set the initial position
         self.base_model.position(initial_location[0], 
@@ -38,17 +39,27 @@ class Asteroid:
         self.base_model.draw()
         
     def move(self, t):
-        self.pos = self.motion.location(t)
-        self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
-        self.base_model.rotateIncX(0.2)
-        self.base_model.rotateIncY(0.3)
+        if not self.hit_mode:
+            # Move the asteroid along the line towards the origin
+            self.pos = self.motion.location(t)
+            self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
+            self.base_model.rotateIncX(0.2)
+            self.base_model.rotateIncY(0.3)
+        else:
+            # Set the explosion progress parameter
+            self.hit_time = t - self.hit_t0
+            self.base_model.set_custom_data(21, (0.0, self.hit_time/5.0, 0.0))
         
     def distance2(self):
         return self.pos.dot(self.pos)
     
     def get_position(self):
         return self.pos
-
+    
+    def hit(self, now):
+        self.hit_mode = True
+        self.hit_t0 = now
+        self.base_model.set_shader(self.explosion_shader)
 
 class AsteroidGenerator:
     """

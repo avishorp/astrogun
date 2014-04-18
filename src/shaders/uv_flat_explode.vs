@@ -134,11 +134,15 @@ attribute vec3 normal;
 void main(void) {
   float disp = 2.0;
   vec3 newpos;
-  float time = unif[7].x;
+
+  // The time is sent to the shader in two parts - the initial explosion
+  // time (x), and the current time (y)
+  float time = (unif[7].y - unif[7].x)*1.5;
 
   float gravity = 0.2 * time*time;
   vec3 gravity_dir = vec3(0, -1.0, 0);
   newpos = vertex + normal*15.0*time*abs(cnoise(normal)) + gravity*gravity_dir;
+  newpos = vertex + normal*time*(15.0+8.0*cnoise(normal)) + gravity*gravity_dir;
 
   texcoordout = texcoord * unib[2].xy + unib[3].xy;
   gl_Position = modelviewmatrix[1] * vec4(newpos,1.0);
