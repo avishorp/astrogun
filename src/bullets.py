@@ -24,6 +24,7 @@ class Bullet:
         self.bullet_model.textures = p.textures
         self.pos = origin
         self.direction = eom/numpy.linalg.norm(eom)
+        self.destination = None
 
     def draw(self):
         self.bullet_model.draw()
@@ -41,9 +42,15 @@ class Bullet:
     def get_direction(self):
         return self.direction
 
+    def set_destination(self, dest):
+        self.destination = dest
+        
+    def get_destination(self):
+        return self.destination
 
 class BulletGenerator:
-    def __init__(self, shader):
+    def __init__(self):
+        shader = pi3d.Shader("uv_flat")
         self.bullet_prototype = pi3d.Sphere(radius=0.5)
         self.bullet_prototype.set_shader(shader)
         

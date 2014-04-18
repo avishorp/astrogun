@@ -2,6 +2,7 @@
 import time, random, math, numpy
 from util import LinearMotion, PolarCoord
 from settings import SPEED_RANGE, PHI_RANGE, THETA_RANGE, INITIAL_DISTANCE
+import pi3d
 
 # A list of all available asteroid models
 models = [
@@ -17,11 +18,12 @@ models = [
     ]
 
 class Asteroid:
-    def __init__(self, base_model, azimuth, inclination, speed, t0):
+    def __init__(self, base_model, azimuth, inclination, speed, t0, explosion_shader):
         self.base_model = base_model
         self.azimuth = azimuth
         self.inclination = inclination
         self.speed = speed
+        self.explosion_shader = explosion_shader
         self.radius = 3   # TODO: Customize the radius for each model
         initial_location = numpy.array(
             PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
@@ -58,12 +60,35 @@ class AsteroidGenerator:
     #   motion_func - A function describing the motion of the object
     #   rate - Generation rate, in obj/sec
     #   angle_restricion - TBD
-    def __init__(self, model_list, rate, angle_restiction):
-        self.model_list = model_list
+    def __init__(self, rate, angle_restiction):
         self.rate = rate
         self.rate_range = ((1.0/self.rate)*0.8, (1.0/self.rate)*1.2)
         self.next_gen_time = time.time()
         self.calc_next_gen_time()
+        
+        # Load the asteroid shaders
+        self.regular_shader = pi3d.Shader("uv_flat")
+        self.explosion_shader = pi3d.Shader("uv_flat_explode")
+        
+        # Load the asteroid models
+        self.asteroid_model_list = []
+        global_scale = 1.0
+        for mf in models[0:3]:
+            model_filename = mf[0]
+            model_scale = mf[1]
+            model_name = model_filename.split('.')[0] # Remove the .obj extention
+  
+            print("Loading " + model_name)
+  
+            m = pi3d.Model(file_string='../media/models/' + model_filename, 
+                           name=model_name)
+            m.set_shader(self.regular_shader)
+            m.scale(model_scale*global_scale, 
+                    model_scale*global_scale,
+                    model_scale*global_scale)
+  
+            self.asteroid_model_list.append(m)
+
     
     # Calculate the next time in which an object should be generated
     def calc_next_gen_time(self):
@@ -80,7 +105,7 @@ class AsteroidGenerator:
             
             # Select a random item from the list, and
             # clone it
-            nobj = random.choice(self.model_list).clone()
+            nobj = random.choice(self.asteroid_model_list).clone()
             
             # Select an incident angle and speed
             phi = random.uniform(*PHI_RANGE)
@@ -88,7 +113,7 @@ class AsteroidGenerator:
             speed = random.uniform(*SPEED_RANGE)
 
             # Create the asteroid object
-            ast = Asteroid(nobj, phi, theta, speed, now)
+            ast = Asteroid(nobj, phi, theta, speed, now, self.explosion_shader)
             
             # Calculate the next generation time
             self.calc_next_gen_time()

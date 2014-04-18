@@ -17,10 +17,10 @@ from settings import *
 
 
 class GameLevel:
-  def __init__(self, asteroid_model_list, bullet_shader):
+  def __init__(self):
     # Instantiate an Asteroid Generator
-    self.gen = asteroids.AsteroidGenerator(asteroid_model_list, 1, None)
-    self.bullet_gen = bullets.BulletGenerator(bullet_shader)
+    self.gen = asteroids.AsteroidGenerator(1, None)
+    self.bullet_gen = bullets.BulletGenerator()
     self.active_asteroids = []
     self.active_bullets = []
     self.azimuth = 0.0
@@ -35,9 +35,7 @@ class GameLevel:
     indx = 0
     for ast in self.active_asteroids:
       if (self.check_incidence(ast, I)):
-        del self.active_asteroids[indx]
-      else:
-        indx += 1
+        b.set_destination(ast)
 
   # Check wheter a bullet will hit an asteroid. 
   # asteroid - An Asteroid class object
@@ -86,7 +84,14 @@ class GameLevel:
       objindex = 0
       for bull in self.active_bullets:
         bull.move(now)
+        dest = bull.get_destination()
         dist2_from_origin = bull.distance2()
+        
+        #if dest is not None:
+        #  ast_distance2 = dest.distance2()
+        #  if dist2_from_origin > ast_distance2:
+        #    # Bullet hit the asteroid
+        #if (bull.get_destination()
         if dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it
           del self.active_bullets[objindex]
@@ -129,31 +134,11 @@ class GameLevel:
 DISPLAY = pi3d.Display.create(x=20, y=20,
                          background=(0, 0, 0, 1))
 cam = pi3d.Camera(at=[0.0, 0.0, 200.0], eye=[0.0, 0.0, 0.0])
-shader = pi3d.Shader("uv_flat")
-
-# Load all asteroid models 
-asteroid_model_list = []
-global_scale = 1.0
-for mf in asteroids.models[0:3]:
-  model_filename = mf[0]
-  model_scale = mf[1]
-  model_name = model_filename.split('.')[0] # Remove the .obj extention
-  
-  print("Loading " + model_name)
-  
-  m = pi3d.Model(file_string='../media/models/' + model_filename, 
-                 name=model_name)
-  m.set_shader(shader)
-  m.scale(model_scale*global_scale, 
-        model_scale*global_scale,
-        model_scale*global_scale)
-  
-  asteroid_model_list.append(m)
 
 # Fetch key presses
 mykeys = pi3d.Keyboard()
 try:
-  level = GameLevel(asteroid_model_list, shader)
+  level = GameLevel()
   level.play(mykeys)
 except:
   mykeys.close()
