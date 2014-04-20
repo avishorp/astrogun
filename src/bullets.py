@@ -50,9 +50,10 @@ class Bullet:
 
 class BulletGenerator:
     def __init__(self):
-        shader = pi3d.Shader("uv_flat")
+        shader = pi3d.Shader("mat_flat")
         self.bullet_prototype = pi3d.Sphere(radius=0.5)
         self.bullet_prototype.set_shader(shader)
+        self.bullet_prototype.set_material((1.0, 0.0, 0.0))
         
     def generate(self, azimuth, incl, now):
         b = Bullet(self.bullet_prototype, azimuth, incl, 

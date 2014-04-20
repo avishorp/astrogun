@@ -24,7 +24,7 @@ class Asteroid:
         self.inclination = inclination
         self.speed = speed
         self.explosion_shader = explosion_shader
-        self.radius = 3   # TODO: Customize the radius for each model
+        self.radius = 1   # TODO: Customize the radius for each model
         initial_location = numpy.array(
             PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
         self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)

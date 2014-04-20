@@ -27,6 +27,7 @@ class GameLevel:
     self.hit_asteroids = []
     self.azimuth = 0.0
     self.incl = 0.0
+    self.self_hit = -1
 
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
@@ -73,6 +74,15 @@ class GameLevel:
     while DISPLAY.loop_running():
       now = time.time()
 
+      # Self hit effect
+      if self.self_hit > 0:
+        DISPLAY.set_background(1.0, 0, 0, self.self_hit*1.0/10.0)
+        if self.self_hit < 10:
+          self.self_hit += 1
+        else:
+          self.self_hit = -1
+          DISPLAY.set_background(1.0,0,0,0.0)
+          
       # (possibly) generate a new asteroid
       ast = self.gen.generate_asteroid(now)
       if ast is not None:
@@ -90,6 +100,7 @@ class GameLevel:
         if dist2_from_origin < SELF_IMPACT_RADIUS2:
           # Reached origin, destory it
           del self.active_asteroids[astid]
+          self.self_hit = 1
       
         # Position, rotate and draw the asteroid
         ast.draw()
@@ -158,7 +169,7 @@ class GameLevel:
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(x=20, y=20,
-                         background=(0, 0, 0, 1))
+                         background=(1.0, 0, 0, 0))
 cam = pi3d.Camera(at=[0.0, 0.0, 200.0], eye=[0.0, 0.0, 0.0])
 
 # Fetch key presses

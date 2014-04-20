@@ -22,10 +22,10 @@ INITIAL_LIVES = 5
 SELF_IMPACT_RADIUS2 = 5
 
 # Impact raduis of an asteroid (squared)
-ASTEROID_IMPACT_RADIUS = 10
+ASTEROID_IMPACT_RADIUS = 6
 
 # Bullet origin (the point from which the bullet starts)
-BULLET_ORIGIN = numpy.array([0.0, -0.0, 0.0])
+BULLET_ORIGIN = numpy.array([0.0, -5.0, 0.0])
 
 # The distance until which the bullet travels
 BULLET_DISTANCE = 200.0
