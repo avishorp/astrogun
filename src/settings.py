@@ -1,17 +1,15 @@
 # Global Game Settings
 
-from math import pi
+from math import pi, radians
 import numpy
 
 # Asteroid generation parametrs
 ###############################
 SPEED_RANGE = (0.2, 0.4)
-PHI_RANGE = (0, pi)
-THETA_RANGE = (10.0/180.0*pi,170/180.0*pi)
+INCLINATION_RANGE = (10, 60)
+AZIMUTH_RANGE = (-70, 70)
 INITIAL_DISTANCE = 50
 
-PHI_RANGE = (0, 0.5)
-THERA_RANGE = (0.5,0.8)
 
 #######################################
 

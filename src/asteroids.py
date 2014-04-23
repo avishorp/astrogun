@@ -1,7 +1,7 @@
 
 import time, random, math, numpy
-from util import LinearMotion, PolarCoord
-from settings import SPEED_RANGE, PHI_RANGE, THETA_RANGE, INITIAL_DISTANCE
+from util import LinearMotion, spher_to_cart
+from settings import *
 import pi3d
 
 # A list of all available asteroid models
@@ -26,7 +26,7 @@ class Asteroid:
         self.explosion_shader = explosion_shader
         self.radius = 1   # TODO: Customize the radius for each model
         initial_location = numpy.array(
-            PolarCoord(INITIAL_DISTANCE, azimuth, inclination).to_cartesian())
+            spher_to_cart(azimuth, inclination, INITIAL_DISTANCE))
         self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)
         self.hit_mode = False
            
@@ -119,12 +119,12 @@ class AsteroidGenerator:
             nobj = random.choice(self.asteroid_model_list).clone()
             
             # Select an incident angle and speed
-            phi = random.uniform(*PHI_RANGE)
-            theta = random.uniform(*THETA_RANGE)
+            azimuth = random.uniform(*AZIMUTH_RANGE)
+            incl = random.uniform(*INCLINATION_RANGE)
             speed = random.uniform(*SPEED_RANGE)
 
             # Create the asteroid object
-            ast = Asteroid(nobj, phi, theta, speed, now, self.explosion_shader)
+            ast = Asteroid(nobj, azimuth, incl, speed, now, self.explosion_shader)
             
             # Calculate the next generation time
             self.calc_next_gen_time()

@@ -1,18 +1,5 @@
 import math, numpy
 
-# Holds a point in 3D polar (spherical) coordinates
-class PolarCoord:
-    def __init__(self, r, phi, tetha):
-        self.r = r
-        self.phi = phi
-        self.tetha = tetha
-        
-    def to_cartesian(self):
-        x = self.r * math.sin(self.tetha)*math.cos(self.phi)
-        y = self.r * math.sin(self.tetha)*math.sin(self.phi)
-        z = self.r * math.cos(self.tetha)
-        return (x, y, z)
-
 # Covert from spherical coordinates
 # into cartesian (adjusted for pi3d coordinate system, where
 # X-Y plane is the screen)
