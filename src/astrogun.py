@@ -17,7 +17,7 @@ from settings import *
 
 
 class GameLevel:
-  def __init__(self):
+  def __init__(self, sprites):
     # Instantiate an Asteroid Generator
     self.gen = asteroids.AsteroidGenerator(1, None)
     self.bullet_gen = bullets.BulletGenerator()
@@ -28,7 +28,25 @@ class GameLevel:
     self.azimuth = 0.0
     self.incl = 0.0
     self.self_hit = -1
+    self.sprites = sprites
+    self.fixed_sprites = []
+    
+    # Initial sprite location
+    s = self.sprites['sight']
+    s.position(*SIGHT_POSITION)
+    s.scale(*SIGHT_SCALE)
+    self.fixed_sprites.append(s)
 
+    s = sprites['radar_panel']
+    s.position(*RADAR_PANEL_POSITION)
+    s.scale(*RADAR_PANEL_SCALE)
+    self.fixed_sprites.append(s)
+
+    s = sprites['radar_target']
+    s.position(*TARGET_CENTER_POSITION)
+    s.scale(*TARGET_SCALE)
+    self.fixed_sprites.append(s)
+    
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
     self.active_bullets.append(b)
@@ -136,6 +154,10 @@ class GameLevel:
           objindex += 1
       
         bull.draw()
+
+      # Draw Sprites
+      for s in self.fixed_sprites:
+        s.draw()
   
       # TEMPORARY CODE
       k = keys.read()
@@ -166,16 +188,28 @@ class GameLevel:
           break
 
 
+def load_sprites():
+  sprite_filenames = ['sight', 'radar_panel', 'radar_target']
+  sprites = {}
+  sh = pi3d.Shader('uv_flat')
+  
+  for fn in sprite_filenames:
+    s = pi3d.ImageSprite('../media/bitmaps/' + fn + '.png', shader = sh, w = 1, h = 1)
+    sprites[fn] = s
+    
+  return sprites
+
 
 # Setup display and initialise pi3d
-DISPLAY = pi3d.Display.create(x=20, y=20,
-                         background=(1.0, 0, 0, 0))
+DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 0))
 cam = pi3d.Camera(at=[0.0, 0.0, 200.0], eye=[0.0, 0.0, 0.0])
+
+SPRITES = load_sprites()
 
 # Fetch key presses
 mykeys = pi3d.Keyboard()
 try:
-  level = GameLevel()
+  level = GameLevel(SPRITES)
   level.play(mykeys)
 except:
   mykeys.close()
