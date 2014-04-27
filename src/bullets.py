@@ -13,7 +13,7 @@ class Bullet:
                 azimuth, 
                 incl,
                 distance
-                )).clip(1e-3)
+                ))
         self.motion = util.LinearMotion(origin, eom, speed, now)
         p = prototype
         self.bullet_model = pi3d.Shape(None, None, "bullet", p.unif[0], p.unif[1], p.unif[2],
@@ -26,8 +26,8 @@ class Bullet:
         self.direction = eom/numpy.linalg.norm(eom)
         self.destination = None
 
-    def draw(self):
-        self.bullet_model.draw()
+    def draw(self, camera):
+        self.bullet_model.draw(camera = camera)
         
     def move(self, t):
         self.pos = self.motion.location(t)

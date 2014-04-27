@@ -19,7 +19,7 @@ from settings import *
 class GameLevel:
   def __init__(self, sprites):
     # Instantiate an Asteroid Generator
-    self.gen = asteroids.AsteroidGenerator(1, None)
+    self.gen = asteroids.AsteroidGenerator(0.1, None)
     self.bullet_gen = bullets.BulletGenerator()
     self.active_asteroids = {}
     self.asteroid_id = 0
@@ -41,11 +41,13 @@ class GameLevel:
     s.position(*RADAR_PANEL_POSITION)
     s.scale(*RADAR_PANEL_SCALE)
     self.fixed_sprites.append(s)
-
-    s = sprites['radar_target']
-    s.position(*TARGET_CENTER_POSITION)
-    s.scale(*TARGET_SCALE)
-    self.fixed_sprites.append(s)
+    
+    self.radar_target = sprites['radar_target']
+    self.radar_target.scale(*TARGET_SCALE)
+    #s = sprites['radar_target']
+    #s.position(*TARGET_CENTER_POSITION)
+    #s.scale(*TARGET_SCALE)
+    #self.fixed_sprites.append(s)
     
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
@@ -109,8 +111,19 @@ class GameLevel:
     
       # Draw all active asteroid
       for astid, ast in self.active_asteroids.items():
+        # Draw the asteroid itseld
         ast.move(now)
         dist2_from_origin = ast.distance2()
+        
+        # Draw the target on the radar view
+        dist_from_origin = (math.sqrt(dist2_from_origin)/INITIAL_DISTANCE)*TARGET_DIST_SCALE
+        angle = math.radians(ast.azimuth + self.azimuth + 90)
+        rtx = dist_from_origin*math.cos(angle)
+        rty = dist_from_origin*math.sin(angle)
+        self.radar_target.position(TARGET_CENTER_POSITION[0]+rtx, 
+                                   TARGET_CENTER_POSITION[1]+rty,
+                                   TARGET_CENTER_POSITION[2])
+        self.radar_target.draw(camera = cam2d)
 
         if ast.hit_mode:
           if ast.hit_time > 8.0:
@@ -121,7 +134,7 @@ class GameLevel:
           self.self_hit = 1
       
         # Position, rotate and draw the asteroid
-        ast.draw()
+        ast.draw(camera = cam3d)
 
       # Draw all hit asteroids
       for ast in self.hit_asteroids:
@@ -129,7 +142,7 @@ class GameLevel:
         if ast.hit_time > 8.0:
           self.hit_asteroids[0]
           
-        ast.draw()
+        ast.draw(camera = cam3d)
 
       # Draw all active bullets
       objindex = 0
@@ -153,45 +166,63 @@ class GameLevel:
         else:
           objindex += 1
       
-        bull.draw()
+        bull.draw(camera = cam3d)
 
       # Draw Sprites
       for s in self.fixed_sprites:
-        s.draw()
+        s.draw(camera = cam2d)
+        
+
+      # Debugging
+      #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
+      #debug_str_pi = pi3d.String(font=arial_font, string=debug_str,
+      #                           x = 0, y = 0, z = 5, sx=0.005, sy=0.005)
+      #debug_str_pi.set_shader(shader_uv_flat)
+      #debug_str_pi.draw(camera = cam2d)
   
       # TEMPORARY CODE
       k = keys.read()
+      cam_rotate = False
       if k >-1:
         if k==260:
           # Left
           self.azimuth -= 1.0
-          cam.rotateY(1.0)
+          #cam3d.rotateY(1.0)
+          cam_rotate = True
         elif k==261:
           # Right
           self.azimuth += 1.0
-          cam.rotateY(-1.0)
+          #cam3d.rotateY(-1.0)
+          cam_rotate = True
         elif k==258:
           # Down
-          cam.rotateX(-1)
+          #cam3d.rotateX(-1)
           self.incl -= 1.0
+          cam_rotate = True
         elif k==259:
           # Up
-          cam.rotateX(1)
+          #cam3d.rotateX(1)
           self.incl += 1.0
+          cam_rotate = True
         elif k==ord(' '):
           self.create_bullet(now)
 
         elif k==ord('1'):
-          cam.rotateY(25.0)
+          cam3d.rotateY(25.0)
           #self.azimuth = 25.0
         elif k==27:
           break
+        
+        if cam_rotate:
+          cam3d.reset()
+          cam3d.rotateX(self.incl)
+          cam3d.rotateY(-self.azimuth)
 
 
 def load_sprites():
   sprite_filenames = ['sight', 'radar_panel', 'radar_target']
   sprites = {}
-  sh = pi3d.Shader('uv_flat')
+  sh = shader_uv_flat
   
   for fn in sprite_filenames:
     s = pi3d.ImageSprite('../media/bitmaps/' + fn + '.png', shader = sh, w = 1, h = 1)
@@ -202,9 +233,17 @@ def load_sprites():
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 0))
-cam = pi3d.Camera(at=[0.0, 0.0, 200.0], eye=[0.0, 0.0, 0.0])
+
+ASPECT = DISPLAY.width / DISPLAY.height
+cam3d = pi3d.Camera((0,0,0), (0,0,-0.1), (1, 1000, 45, ASPECT), is_3d=True)
+cam2d = pi3d.Camera(is_3d=True)
+shader_uv_flat = pi3d.Shader('uv_flat')
+arial_font = pi3d.Font("fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
 
 SPRITES = load_sprites()
+
+
+
 
 # Fetch key presses
 mykeys = pi3d.Keyboard()
@@ -218,5 +257,3 @@ except:
 
 mykeys.close()
 DISPLAY.destroy()
-
-

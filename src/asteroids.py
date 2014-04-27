@@ -35,8 +35,8 @@ class Asteroid:
                                  initial_location[1], 
                                  initial_location[2])
         
-    def draw(self):
-        self.base_model.draw()
+    def draw(self, camera):
+        self.base_model.draw(camera = camera)
         
     def move(self, t):
         if not self.hit_mode:

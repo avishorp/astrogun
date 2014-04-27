@@ -6,9 +6,9 @@ import numpy
 # Asteroid generation parametrs
 ###############################
 SPEED_RANGE = (0.2, 0.4)
-INCLINATION_RANGE = (10, 60)
-AZIMUTH_RANGE = (-70, 70)
-INITIAL_DISTANCE = 50
+INCLINATION_RANGE = (10.0, 60.0)
+AZIMUTH_RANGE = (-180.0, 180.0)
+INITIAL_DISTANCE = 50.0
 
 
 #######################################
@@ -42,4 +42,5 @@ RADAR_PANEL_POSITION = (2, -1, 4.8)
 RADAR_PANEL_SCALE = (1.3, 1.3, 1)
 
 TARGET_CENTER_POSITION = (2-0.03, -1+0.02, 4.7)
-TARGET_SCALE = (0.3, 0.3, 1)
+TARGET_SCALE = (0.2, 0.2, 1)
+TARGET_DIST_SCALE = 0.6
