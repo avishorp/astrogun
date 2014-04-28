@@ -30,7 +30,10 @@ class GameLevel:
     self.self_hit = -1
     self.sprites = sprites
     self.fixed_sprites = []
-    
+    self.lives = INITIAL_LIVES
+    self.scores = 0
+    self.scores_changed = True
+        
     # Initial sprite location
     s = self.sprites['sight']
     s.position(*SIGHT_POSITION)
@@ -44,11 +47,13 @@ class GameLevel:
     
     self.radar_target = sprites['radar_target']
     self.radar_target.scale(*TARGET_SCALE)
-    #s = sprites['radar_target']
-    #s.position(*TARGET_CENTER_POSITION)
-    #s.scale(*TARGET_SCALE)
-    #self.fixed_sprites.append(s)
     
+    self.life_full = sprites['life_full']
+    self.life_full.scale(0.28, 0.08, 1)
+
+    self.life_empty = sprites['life_empty']
+    self.life_empty.scale(0.6, 0.3, 0.5)
+
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
     self.active_bullets.append(b)
@@ -172,6 +177,20 @@ class GameLevel:
       for s in self.fixed_sprites:
         s.draw(camera = cam2d)
         
+      # Draw lives
+      for l in range(0, 5):
+        self.life_full.position(-3.2, 1.3 + l*0.10, 4.7)
+        self.life_full.draw(camera = cam2d)
+
+      # Draw scores
+      if self.scores_changed:
+        self.scores_str = pi3d.String(font=computer_font, 
+                                      string="%03d" % self.scores,
+                                      x = -2.5, y = 1.45, z = 4.5, sx=0.01, sy=0.01)
+        self.scores_str.set_shader(shader_uv_flat)
+        scores_changed = False
+
+      self.scores_str.draw(camera = cam2d)
 
       # Debugging
       #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
@@ -207,20 +226,18 @@ class GameLevel:
         elif k==ord(' '):
           self.create_bullet(now)
 
-        elif k==ord('1'):
-          cam3d.rotateY(25.0)
-          #self.azimuth = 25.0
         elif k==27:
           break
-        
-        if cam_rotate:
-          cam3d.reset()
-          cam3d.rotateX(self.incl)
-          cam3d.rotateY(-self.azimuth)
+      
+      # Handle camera rotation
+      if cam_rotate:
+        cam3d.reset()
+        cam3d.rotateX(self.incl)
+        cam3d.rotateY(-self.azimuth)
 
 
 def load_sprites():
-  sprite_filenames = ['sight', 'radar_panel', 'radar_target']
+  sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans']
   sprites = {}
   sh = shader_uv_flat
   
@@ -233,16 +250,17 @@ def load_sprites():
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 0))
+DISPLAY.frames_per_second = 30
 
 ASPECT = DISPLAY.width / DISPLAY.height
 cam3d = pi3d.Camera((0,0,0), (0,0,-0.1), (1, 1000, 45, ASPECT), is_3d=True)
 cam2d = pi3d.Camera(is_3d=True)
 shader_uv_flat = pi3d.Shader('uv_flat')
+shader_mat_flat = pi3d.Shader('mat_flat')
 arial_font = pi3d.Font("fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
+computer_font = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
 
 SPRITES = load_sprites()
-
-
 
 
 # Fetch key presses
