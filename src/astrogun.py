@@ -104,12 +104,12 @@ class GameLevel:
       
       # Self hit effect
       if self.self_hit > 0:
-        DISPLAY.set_background(1.0, 0, 0, self.self_hit*1.0/10.0)
+        DISPLAY.set_background(self.self_hit*1.0/10.0, 0, 0, 1)
         if self.self_hit < 10:
           self.self_hit += 1
         else:
           self.self_hit = -1
-          DISPLAY.set_background(1.0,0,0,0.0)
+          DISPLAY.set_background(0.0,0,0,1.0)
           
       # (possibly) generate a new asteroid
       ast = self.gen.generate_asteroid(now)
@@ -268,8 +268,8 @@ def load_sprites():
 
 
 # Setup display and initialise pi3d
-DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 1))
-DISPLAY.frames_per_second = 20
+DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
+DISPLAY.frames_per_second = 30
 
 ASPECT = DISPLAY.width / DISPLAY.height
 cam3d = pi3d.Camera((0,0,0), (0,0,-0.1), (1, 1000, 45, ASPECT), is_3d=True)
