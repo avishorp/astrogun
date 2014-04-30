@@ -33,7 +33,8 @@ class GameLevel:
     self.lives = INITIAL_LIVES
     self.scores = 0
     self.scores_changed = True
-        
+    self.frames = 0
+    
     # Initial sprite location
     s = self.sprites['sight']
     s.position(*SIGHT_POSITION)
@@ -49,10 +50,10 @@ class GameLevel:
     self.radar_target.scale(*TARGET_SCALE)
     
     self.life_full = sprites['life_full']
-    self.life_full.scale(0.28, 0.08, 1)
+    self.life_full.scale(*LIFE_BAR_SCALE)
 
     self.life_empty = sprites['life_empty']
-    self.life_empty.scale(0.6, 0.3, 0.5)
+    self.life_empty.scale(*LIFE_BAR_SCALE)
 
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
@@ -95,10 +96,12 @@ class GameLevel:
 
   def play(self, keys):
     now = time.time()
-
+    start_time = now
+    
     while DISPLAY.loop_running():
       now = time.time()
-
+      self.frames += 1
+      
       # Self hit effect
       if self.self_hit > 0:
         DISPLAY.set_background(1.0, 0, 0, self.self_hit*1.0/10.0)
@@ -137,6 +140,7 @@ class GameLevel:
           # Reached origin, destory it
           del self.active_asteroids[astid]
           self.self_hit = 1
+          self.lives -= 1
       
         # Position, rotate and draw the asteroid
         ast.draw(camera = cam3d)
@@ -179,14 +183,23 @@ class GameLevel:
         
       # Draw lives
       for l in range(0, 5):
-        self.life_full.position(-3.2, 1.3 + l*0.10, 4.7)
-        self.life_full.draw(camera = cam2d)
+        if l+1 > self.lives:
+          s = self.life_empty
+        else:
+          s = self.life_full
+        s.position(LIFE_BAR_POSITION[0],
+                   LIFE_BAR_POSITION[1] + l*LIFE_BAR_STEP,
+                   LIFE_BAR_POSITION[2])
+        s.draw(camera = cam2d)
 
       # Draw scores
       if self.scores_changed:
         self.scores_str = pi3d.String(font=computer_font, 
                                       string="%03d" % self.scores,
-                                      x = -2.5, y = 1.45, z = 4.5, sx=0.01, sy=0.01)
+                                      x = SCORE_POSITION[0],
+                                      y = SCORE_POSITION[1],
+                                      z = SCORE_POSITION[2],
+                                      sx=0.01, sy=0.01)
         self.scores_str.set_shader(shader_uv_flat)
         scores_changed = False
 
@@ -225,8 +238,7 @@ class GameLevel:
           cam_rotate = True
         elif k==ord(' '):
           self.create_bullet(now)
-
-        elif k==27:
+        elif (k == 27):
           break
       
       # Handle camera rotation
@@ -235,6 +247,13 @@ class GameLevel:
         cam3d.rotateX(self.incl)
         cam3d.rotateY(-self.azimuth)
 
+      # If no more lives left, terminate the game
+      if self.lives == 0:
+        break
+      
+    # Calculate average FPS
+    end_time = time.time()
+    self.FPS = (1.0*self.frames)/(1.0*(end_time - start_time))
 
 def load_sprites():
   sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans']
@@ -249,8 +268,8 @@ def load_sprites():
 
 
 # Setup display and initialise pi3d
-DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 0))
-DISPLAY.frames_per_second = 30
+DISPLAY = pi3d.Display.create(background=(1.0, 0, 0, 1))
+DISPLAY.frames_per_second = 20
 
 ASPECT = DISPLAY.width / DISPLAY.height
 cam3d = pi3d.Camera((0,0,0), (0,0,-0.1), (1, 1000, 45, ASPECT), is_3d=True)
@@ -275,3 +294,6 @@ except:
 
 mykeys.close()
 DISPLAY.destroy()
+
+print("lives: %d\n" % level.lives)
+print("FPS: %f\n" % level.FPS)
