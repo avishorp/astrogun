@@ -15,6 +15,9 @@ import math
 
 from settings import *
 
+######################################
+#### GameLevel
+######################################
 
 class GameLevel:
   def __init__(self, sprites):
@@ -194,7 +197,7 @@ class GameLevel:
 
       # Draw scores
       if self.scores_changed:
-        self.scores_str = pi3d.String(font=computer_font, 
+        self.scores_str = pi3d.String(font=FONT_COMPUTER, 
                                       string="%03d" % self.scores,
                                       x = SCORE_POSITION[0],
                                       y = SCORE_POSITION[1],
@@ -207,7 +210,7 @@ class GameLevel:
 
       # Debugging
       #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
-      #debug_str_pi = pi3d.String(font=arial_font, string=debug_str,
+      #debug_str_pi = pi3d.String(font=FONT_ARIAL, string=debug_str,
       #                           x = 0, y = 0, z = 5, sx=0.005, sy=0.005)
       #debug_str_pi.set_shader(shader_uv_flat)
       #debug_str_pi.draw(camera = cam2d)
@@ -255,8 +258,51 @@ class GameLevel:
     end_time = time.time()
     self.FPS = (1.0*self.frames)/(1.0*(end_time - start_time))
 
+
+######################################
+#### OpeningScreen
+######################################
+class OpeningScreen:
+  
+  def __init__(self):
+    # Position the openinig screen graphics
+    self.spr = SPRITES['opening']
+    self.spr.position(0, 0, 4)
+    self.spr.scale(3.7, 3.7, 1)
+    
+    self.text = pi3d.String(font=FONT_COMPUTER, 
+                            string = "Press the START Button to Begin",
+                            x = 0, y = .5, z = 3.9,
+                            sx=0.005, sy=0.005)
+    self.text.set_shader(shader_uv_flat)
+    self.text_ts_delta = 0.1
+    self.text_ts = 0
+    
+  def start(self):
+    while DISPLAY.loop_running():
+      # Draw the opening screen
+      self.spr.draw(camera = cam2d)
+
+      self.text_ts += self.text_ts_delta
+      #if self.text_ts > 1.0:
+      #  self.text_ts = 1.0
+      #  self.text_ts_delta = -self.text_ts_delta
+
+      #if self.text_ts < 0.0:
+      #  self.text_ts = 0.0
+      #  self.text_ts_delta = -self.text_ts_delta
+
+      self.text.set_custom_data(17, [abs(math.sin(self.text_ts))])
+
+      self.text.draw(camera = cam2d)
+      
+      k = KEYS.read()
+      if k >-1:
+        break;
+
+
 def load_sprites():
-  sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans']
+  sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans', 'opening']
   sprites = {}
   sh = shader_uv_flat
   
@@ -271,29 +317,36 @@ def load_sprites():
 DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
 DISPLAY.frames_per_second = 30
 
+# Create Cameras
 ASPECT = DISPLAY.width / DISPLAY.height
 cam3d = pi3d.Camera((0,0,0), (0,0,-0.1), (1, 1000, 45, ASPECT), is_3d=True)
 cam2d = pi3d.Camera(is_3d=True)
+
+# Load shaders
 shader_uv_flat = pi3d.Shader('uv_flat')
 shader_mat_flat = pi3d.Shader('mat_flat')
-arial_font = pi3d.Font("fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
-computer_font = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
 
+# Load Fonts
+FONT_ARIAL = pi3d.Font("../media/fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
+FONT_COMPUTER = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
+
+# Load Sprites
 SPRITES = load_sprites()
 
-
 # Fetch key presses
-mykeys = pi3d.Keyboard()
+KEYS = pi3d.Keyboard()
+
 try:
-  level = GameLevel(SPRITES)
-  level.play(mykeys)
+  opening = OpeningScreen()
+  opening.start()
+  
+  #level = GameLevel(SPRITES)
+  #level.play(KEYS)
 except:
   mykeys.close()
   DISPLAY.destroy()
   raise
 
-mykeys.close()
+KEYS.close()
 DISPLAY.destroy()
 
-print("lives: %d\n" % level.lives)
-print("FPS: %f\n" % level.FPS)

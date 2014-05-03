@@ -51,4 +51,10 @@ LIFE_BAR_STEP = 0.1
 
 SCORE_POSITION = (-2.5, 1.45, 4.5)
 
+# Initial number of lives
 INITIAL_LIVES = 5
+
+# Sounds
+SHOOTING_SOUND = '../media/sounds/match3.wav'
+EXPLODE_SOUND = ''
+HIT_SOUND = ''
