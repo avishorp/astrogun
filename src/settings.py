@@ -58,3 +58,8 @@ INITIAL_LIVES = 5
 SHOOTING_SOUND = '../media/sounds/match3.wav'
 EXPLODE_SOUND = ''
 HIT_SOUND = ''
+
+# I/O Buttons and Actuator Mappings
+BUTTON_START_GPIO = 4
+BUTTON_FIRE_GPIO = 17
+RUMBLE_FIRE_GPIO = 22

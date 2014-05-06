@@ -12,7 +12,7 @@ import asteroids, bullets
 import numpy, numpy.linalg
 import util
 import math
-
+import RPi.GPIO as GPIO
 from settings import *
 
 ######################################
@@ -295,6 +295,11 @@ class OpeningScreen:
       self.text.set_custom_data(17, [abs(math.sin(self.text_ts))])
 
       self.text.draw(camera = cam2d)
+
+      # Check if the START button was pressed
+      b = GPIO.input(BUTTON_START_GPIO)
+      if (b == 0):
+        break
       
       k = KEYS.read()
       if k >-1:
@@ -312,6 +317,12 @@ def load_sprites():
     
   return sprites
 
+
+def setup_io():
+  GPIO.setmode(GPIO.BCM)
+  GPIO.setup(BUTTON_START_GPIO, GPIO.IN, GPIO.PUD_UP)
+  GPIO.setup(BUTTON_FIRE_GPIO, GPIO.IN, GPIO.PUD_UP)
+  GPIO.setup(RUMBLE_FIRE_GPIO, GPIO.OUT)
 
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
@@ -332,6 +343,9 @@ FONT_COMPUTER = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
 
 # Load Sprites
 SPRITES = load_sprites()
+
+# Setup I/O
+setup_io()
 
 # Fetch key presses
 KEYS = pi3d.Keyboard()
