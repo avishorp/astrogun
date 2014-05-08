@@ -10,6 +10,10 @@ INCLINATION_RANGE = (10.0, 60.0)
 AZIMUTH_RANGE = (-180.0, 180.0)
 INITIAL_DISTANCE = 50.0
 
+# Directories and Filenames
+###########################
+VAR_DIR = "./var"     # Working directory
+AST_DB_FILENAME = "asteroids_db.bin"
 
 #######################################
 

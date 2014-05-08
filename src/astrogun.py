@@ -13,6 +13,8 @@ import numpy, numpy.linalg
 import util
 import math
 import RPi.GPIO as GPIO
+import os.path
+import pickle
 from settings import *
 
 ######################################
@@ -22,7 +24,7 @@ from settings import *
 class GameLevel:
   def __init__(self, sprites):
     # Instantiate an Asteroid Generator
-    self.gen = asteroids.AsteroidGenerator(0.1, None)
+    self.gen = asteroids.AsteroidGenerator(ASTEROIDS, 0.1, None, shader_explosion)
     self.bullet_gen = bullets.BulletGenerator()
     self.active_asteroids = {}
     self.asteroid_id = 0
@@ -324,6 +326,43 @@ def setup_io():
   GPIO.setup(BUTTON_FIRE_GPIO, GPIO.IN, GPIO.PUD_UP)
   GPIO.setup(RUMBLE_FIRE_GPIO, GPIO.OUT)
 
+def load_asteroids():
+  # Check if a pre-loaded database exists
+  db_filename = os.path.join(VAR_DIR, AST_DB_FILENAME)
+  start = time.time()
+  
+  if os.path.exists(db_filename):
+    # Load the database
+    ast = pickle.load(file(db_filename, 'rb'))
+    
+  else:
+    # Database does not exist. Load the models then save
+    # the database
+    ast = []
+    global_scale = 1.0
+    for mf in asteroids.models[0:5]:
+      model_filename = mf[0]
+      model_scale = mf[1]
+      model_name = model_filename.split('.')[0] # Remove the .obj extention
+      
+      m = pi3d.Model(file_string='../media/models/' + model_filename, 
+                     name=model_name)
+      m.scale(model_scale*global_scale, 
+              model_scale*global_scale,
+              model_scale*global_scale)
+  
+      ast.append(m)
+      
+    pickle.dump(ast, file(db_filename, 'wb'))
+    
+  # Set the shader for all models
+  for a in ast:
+    a.set_shader(shader_uv_flat)
+    
+  end = time.time()
+  print("Loading time: %f\n" % (end-start))
+  return ast
+
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
 DISPLAY.frames_per_second = 30
@@ -336,6 +375,7 @@ cam2d = pi3d.Camera(is_3d=True)
 # Load shaders
 shader_uv_flat = pi3d.Shader('uv_flat')
 shader_mat_flat = pi3d.Shader('mat_flat')
+shader_explosion = pi3d.Shader("uv_flat_explode")
 
 # Load Fonts
 FONT_ARIAL = pi3d.Font("../media/fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
@@ -343,6 +383,9 @@ FONT_COMPUTER = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
 
 # Load Sprites
 SPRITES = load_sprites()
+
+# Load Asteroid models
+ASTEROIDS = load_asteroids()
 
 # Setup I/O
 setup_io()
@@ -354,13 +397,16 @@ try:
   opening = OpeningScreen()
   opening.start()
   
-  #level = GameLevel(SPRITES)
-  #level.play(KEYS)
+  level = GameLevel(SPRITES)
+  level.play(KEYS)
+  
+  KEYS.close()
+  DISPLAY.destroy()
+
 except:
   mykeys.close()
   DISPLAY.destroy()
   raise
 
-KEYS.close()
-DISPLAY.destroy()
+print(level.ee)
 
