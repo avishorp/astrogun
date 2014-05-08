@@ -140,9 +140,11 @@ class GameLevel:
 
         if ast.hit_mode:
           if ast.hit_time > 8.0:
+            self.gen.return_asteroid(self.active_asteroids[astid])
             del self.active_asteroids[astid]
         if dist2_from_origin < SELF_IMPACT_RADIUS2:
           # Reached origin, destory it
+          self.gen.return_asteroid(self.active_asteroids[astid])
           del self.active_asteroids[astid]
           self.self_hit = 1
           self.lives -= 1
@@ -393,11 +395,12 @@ setup_io()
 # Fetch key presses
 KEYS = pi3d.Keyboard()
 
-try:
-  opening = OpeningScreen()
-  opening.start()
+
+opening = OpeningScreen()
+opening.start()
   
-  level = GameLevel(SPRITES)
+level = GameLevel(SPRITES)
+try:
   level.play(KEYS)
   
   KEYS.close()
@@ -408,5 +411,5 @@ except:
   DISPLAY.destroy()
   raise
 
-print(level.ee)
+
 
