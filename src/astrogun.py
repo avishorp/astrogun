@@ -16,10 +16,34 @@ import RPi.GPIO as GPIO
 import os.path
 import pickle
 from settings import *
+import RTIMU
+import threading
 
 ######################################
 #### GameLevel
 ######################################
+
+# Operating modes
+MODE_READY    = 0
+MODE_READY_GO = 1
+MODE_GO       = 2
+MODE_GO_OUT   = 3
+MODE_PLAY     = 4
+
+class IMUReader(threading.Thread):
+  def __init__(self, imu):
+    threading.Thread.__init__(self)
+    self.imu = imu
+    self.data = (0, 0, 0)
+    self.running = True;
+    self.wait_s = imu.IMUGetPollInterval()*1.0/1000.0
+    
+  def run(self):
+    while(self.running):
+      if self.imu.IMURead():
+        self.data = self.imu.getFusionData()
+      time.sleep(self.wait_s)
+
 
 class GameLevel:
   def __init__(self, sprites):
@@ -39,6 +63,17 @@ class GameLevel:
     self.scores = 0
     self.scores_changed = True
     self.frames = 0
+    self.mode = [MODE_READY, READY_TIME]
+    self.ready_text = pi3d.String(font=FONT_BALLS, 
+                                  string = "READY?",
+                                  x = -.3, y = 1, z = 3.9,
+                                  sx=0.018, sy=0.018)
+    self.ready_text.set_shader(shader_uv_flat)
+    self.go_text = pi3d.String(font=FONT_BALLS, 
+                               string = "GO!",
+                               x = 0, y = 0, z = 3.9,
+                               sx=0.005, sy=0.005)
+    self.go_text.set_shader(shader_uv_flat)
     
     # Initial sprite location
     s = self.sprites['sight']
@@ -102,6 +137,9 @@ class GameLevel:
   def play(self, keys):
     now = time.time()
     start_time = now
+    imux = 0
+    imuy = 0
+    imuz = 0
     
     while DISPLAY.loop_running():
       now = time.time()
@@ -142,12 +180,13 @@ class GameLevel:
           if ast.hit_time > 8.0:
             self.gen.return_asteroid(self.active_asteroids[astid])
             del self.active_asteroids[astid]
-        if dist2_from_origin < SELF_IMPACT_RADIUS2:
-          # Reached origin, destory it
-          self.gen.return_asteroid(self.active_asteroids[astid])
-          del self.active_asteroids[astid]
-          self.self_hit = 1
-          self.lives -= 1
+        else:
+          if dist2_from_origin < SELF_IMPACT_RADIUS2:
+            # Reached origin, destory it
+            self.gen.return_asteroid(self.active_asteroids[astid])
+            del self.active_asteroids[astid]
+            self.self_hit = 1
+            ########self.lives -= 1
       
         # Position, rotate and draw the asteroid
         ast.draw(camera = cam3d)
@@ -172,6 +211,7 @@ class GameLevel:
           if dist2_from_origin > ast_distance2:
             # Bullet hit the asteroid
 
+            self.gen.return_asteroid(self.active_asteroids[dest[0]])
             del self.active_asteroids[dest[0]]
             dest[1].hit(now)
             self.hit_asteroids.append(dest[1])
@@ -212,13 +252,42 @@ class GameLevel:
 
       self.scores_str.draw(camera = cam2d)
 
+      # Draw READY-GO text
+      if (self.mode[0] == MODE_READY):
+        self.ready_text.draw(camera = cam2d)
+        self.mode[1] -= 1
+        if (self.mode[1] == 0):
+          self.mode = [MODE_READY_GO, 10]
+          
+      elif (self.mode[0] == MODE_READY_GO):
+        self.ready_text.translateZ(.5)
+        self.ready_text.set_custom_data(17, [self.mode[1]/10.0])
+        self.ready_text.draw(camera = cam2d)
+        self.mode[1] -= 1
+        if (self.mode[1] == 0):
+          self.mode = [MODE_GO, GO_TIME]
+          
+      elif (self.mode[0] == MODE_GO):
+        self.go_text.draw(camera = cam2d)
+        self.mode[1] -= 1
+        if (self.mode[1] == 0):
+          self.mode = [MODE_PLAY, 0]
+
+        
+      
       # Debugging
       #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
       #debug_str_pi = pi3d.String(font=FONT_ARIAL, string=debug_str,
       #                           x = 0, y = 0, z = 5, sx=0.005, sy=0.005)
       #debug_str_pi.set_shader(shader_uv_flat)
       #debug_str_pi.draw(camera = cam2d)
-  
+
+      # Read the IMU angles
+      imux, imuy, imuz = IMU.data
+      self.incl = -math.degrees(imuy)
+      self.azimuth = math.degrees(imuz)
+      cam_rotate = True
+      
       # TEMPORARY CODE
       k = keys.read()
       cam_rotate = False
@@ -249,7 +318,7 @@ class GameLevel:
           break
       
       # Handle camera rotation
-      if cam_rotate:
+      if True: #cam_rotate:
         cam3d.reset()
         cam3d.rotateX(self.incl)
         cam3d.rotateY(-self.azimuth)
@@ -365,6 +434,21 @@ def load_asteroids():
   print("Loading time: %f\n" % (end-start))
   return ast
 
+def init_imu():
+  s = RTIMU.Settings("RTIMU")
+  imu = RTIMU.RTIMU(s)
+  print("IMU Name: " + imu.IMUName())
+  
+  if (not imu.IMUInit()):
+    print("IMU Init Failed");
+    sys.exit(1)
+  else:
+    print("IMU Init Succeeded");
+    
+  reader = IMUReader(imu)
+  reader.start()
+  return reader
+
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
 DISPLAY.frames_per_second = 30
@@ -382,6 +466,7 @@ shader_explosion = pi3d.Shader("uv_flat_explode")
 # Load Fonts
 FONT_ARIAL = pi3d.Font("../media/fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
 FONT_COMPUTER = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
+FONT_BALLS = pi3d.Font("../media/fonts/BallsoOnTheRampage.ttf", (50,70,120,255))
 
 # Load Sprites
 SPRITES = load_sprites()
@@ -391,6 +476,9 @@ ASTEROIDS = load_asteroids()
 
 # Setup I/O
 setup_io()
+
+# Initialize the IMU
+IMU = init_imu()
 
 # Fetch key presses
 KEYS = pi3d.Keyboard()
@@ -405,11 +493,16 @@ try:
   
   KEYS.close()
   DISPLAY.destroy()
+  IMU.running = False
 
 except:
-  mykeys.close()
+  #mykeys.close()
   DISPLAY.destroy()
+  IMU.running = False
+  print(level.gen.asteroid_model_list)
   raise
+
+IMU.running = False
 
 
 

@@ -10,6 +10,9 @@ INCLINATION_RANGE = (10.0, 60.0)
 AZIMUTH_RANGE = (-180.0, 180.0)
 INITIAL_DISTANCE = 50.0
 
+INCLINATION_RANGE = (1.0, 5.0)
+AZIMUTH_RANGE = (-10.0, 10.0)
+
 # Directories and Filenames
 ###########################
 VAR_DIR = "./var"     # Working directory
@@ -67,3 +70,8 @@ HIT_SOUND = ''
 BUTTON_START_GPIO = 4
 BUTTON_FIRE_GPIO = 17
 RUMBLE_FIRE_GPIO = 22
+
+
+#
+READY_TIME = 100 # The time "READY" is displayed
+GO_TIME    = 40  # The time "GO" is displayed
