@@ -71,8 +71,8 @@ class GameLevel:
     self.ready_text.set_shader(shader_uv_flat)
     self.go_text = pi3d.String(font=FONT_BALLS, 
                                string = "GO!",
-                               x = 0, y = 0, z = 3.9,
-                               sx=0.005, sy=0.005)
+                               x = -.2, y = 0.8, z = 3.9 + 5*.5,
+                               sx=0.018, sy=0.018)
     self.go_text.set_shader(shader_uv_flat)
     
     # Initial sprite location
@@ -257,17 +257,29 @@ class GameLevel:
         self.ready_text.draw(camera = cam2d)
         self.mode[1] -= 1
         if (self.mode[1] == 0):
-          self.mode = [MODE_READY_GO, 10]
+          self.mode = [MODE_READY_GO, 5]
           
       elif (self.mode[0] == MODE_READY_GO):
         self.ready_text.translateZ(.5)
-        self.ready_text.set_custom_data(17, [self.mode[1]/10.0])
+        self.ready_text.set_custom_data(17, [self.mode[1]/5.0])
         self.ready_text.draw(camera = cam2d)
+        self.go_text.translateZ(-0.5)
+        self.go_text.set_custom_data(17, [1.0 - self.mode[1]/5.0])
+        self.go_text.draw(camera = cam2d)
         self.mode[1] -= 1
         if (self.mode[1] == 0):
           self.mode = [MODE_GO, GO_TIME]
           
       elif (self.mode[0] == MODE_GO):
+        self.go_text.draw(camera = cam2d)
+        self.mode[1] -= 1
+        if (self.mode[1] == 0):
+          self.mode = [MODE_GO_OUT, 5]
+
+      elif (self.mode[0] == MODE_GO_OUT):
+        self.go_text.translateZ(.5)
+        self.go_text.set_custom_data(17, [self.mode[1]/5.0])
+        self.go_text.draw(camera = cam2d)
         self.go_text.draw(camera = cam2d)
         self.mode[1] -= 1
         if (self.mode[1] == 0):
