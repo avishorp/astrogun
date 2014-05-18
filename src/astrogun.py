@@ -48,7 +48,8 @@ class IMUReader(threading.Thread):
 class GameLevel:
   def __init__(self, sprites):
     # Instantiate an Asteroid Generator
-    self.gen = asteroids.AsteroidGenerator(ASTEROIDS, 0.1, None, shader_explosion)
+    self.gen = asteroids.AsteroidGenerator(ASTEROIDS, 0.1, None, shader_explosion,
+                                           shader_uv_flat)
     self.bullet_gen = bullets.BulletGenerator()
     self.active_asteroids = {}
     self.asteroid_id = 0
@@ -62,6 +63,8 @@ class GameLevel:
     self.lives = INITIAL_LIVES
     self.scores = 0
     self.scores_changed = True
+    self.pause = False
+    self.free_play = False
     self.frames = 0
     self.mode = [MODE_READY, READY_TIME]
     self.ready_text = pi3d.String(font=FONT_BALLS, 
@@ -155,15 +158,17 @@ class GameLevel:
           DISPLAY.set_background(0.0,0,0,1.0)
           
       # (possibly) generate a new asteroid
-      ast = self.gen.generate_asteroid(now)
-      if ast is not None:
-        self.active_asteroids[self.asteroid_id] = ast
-        self.asteroid_id += 1
+      if not self.pause:
+        ast = self.gen.generate_asteroid(now)
+        if ast is not None:
+          self.active_asteroids[self.asteroid_id] = ast
+          self.asteroid_id += 1
     
       # Draw all active asteroid
       for astid, ast in self.active_asteroids.items():
         # Draw the asteroid itseld
-        ast.move(now)
+        if not self.pause:
+          ast.move(now)
         dist2_from_origin = ast.distance2()
         
         # Draw the target on the radar view
@@ -176,20 +181,29 @@ class GameLevel:
                                    TARGET_CENTER_POSITION[2])
         self.radar_target.draw(camera = cam2d)
 
-        if ast.hit_mode:
-          if ast.hit_time > 8.0:
-            self.gen.return_asteroid(self.active_asteroids[astid])
-            del self.active_asteroids[astid]
-        else:
+        #if ast.hit_mode:
+        #  if ast.hit_time > 8.0:
+        #   self.gen.return_asteroid(self.active_asteroids[astid])
+        #    del self.active_asteroids[astid]
+        #else:
+        if True:
           if dist2_from_origin < SELF_IMPACT_RADIUS2:
             # Reached origin, destory it
             self.gen.return_asteroid(self.active_asteroids[astid])
             del self.active_asteroids[astid]
             self.self_hit = 1
-            ########self.lives -= 1
+            if not self.free_play:
+              self.lives -= 1
       
         # Position, rotate and draw the asteroid
         ast.draw(camera = cam3d)
+
+      # Delete all hit asteroids, whose time has passed
+      for astid in range(len(self.hit_asteroids)):
+        ast = self.hit_asteroids[astid]
+        if ast.hit_time > 8.0:
+          self.gen.return_asteroid(self.hit_asteroids[astid])
+          del self.hit_asteroids[astid]
 
       # Draw all hit asteroids
       for ast in self.hit_asteroids:
@@ -202,7 +216,8 @@ class GameLevel:
       # Draw all active bullets
       objindex = 0
       for bull in self.active_bullets:
-        bull.move(now)
+        if not self.pause:
+          bull.move(now)
         dest = bull.get_destination()
         dist2_from_origin = bull.distance2()
         
@@ -211,11 +226,13 @@ class GameLevel:
           if dist2_from_origin > ast_distance2:
             # Bullet hit the asteroid
 
-            self.gen.return_asteroid(self.active_asteroids[dest[0]])
             del self.active_asteroids[dest[0]]
             dest[1].hit(now)
             self.hit_asteroids.append(dest[1])
             del self.active_bullets[objindex]
+            self.scores += 1
+            self.scores_changed = True
+            
         elif dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it
           del self.active_bullets[objindex]
@@ -283,9 +300,7 @@ class GameLevel:
         self.go_text.draw(camera = cam2d)
         self.mode[1] -= 1
         if (self.mode[1] == 0):
-          self.mode = [MODE_PLAY, 0]
-
-        
+          self.mode = [MODE_PLAY, 0]        
       
       # Debugging
       #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
@@ -304,26 +319,14 @@ class GameLevel:
       k = keys.read()
       cam_rotate = False
       if k >-1:
-        if k==260:
-          # Left
-          self.azimuth -= 1.0
-          #cam3d.rotateY(1.0)
-          cam_rotate = True
-        elif k==261:
-          # Right
-          self.azimuth += 1.0
-          #cam3d.rotateY(-1.0)
-          cam_rotate = True
-        elif k==258:
-          # Down
-          #cam3d.rotateX(-1)
-          self.incl -= 1.0
-          cam_rotate = True
-        elif k==259:
-          # Up
-          #cam3d.rotateX(1)
-          self.incl += 1.0
-          cam_rotate = True
+        if k == ord('p'):
+          # Toggle pause
+          self.pause = not self.pause
+        
+        elif k == ord('f'):
+          # Toggle free play mode
+          self.free_play = not self.free_play
+          
         elif k==ord(' '):
           self.create_bullet(now)
         elif (k == 27):
@@ -495,7 +498,6 @@ IMU = init_imu()
 # Fetch key presses
 KEYS = pi3d.Keyboard()
 
-
 opening = OpeningScreen()
 opening.start()
   
@@ -515,6 +517,5 @@ except:
   raise
 
 IMU.running = False
-
 
 

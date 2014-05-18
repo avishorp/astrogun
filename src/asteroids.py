@@ -18,7 +18,7 @@ models = [
     ]
 
 class Asteroid:
-    def __init__(self, base_model, azimuth, inclination, speed, t0, explosion_shader):
+    def __init__(self, base_model, azimuth, inclination, speed, t0, explosion_shader, regular_shader):
         self.base_model = base_model
         self.azimuth = azimuth
         self.inclination = inclination
@@ -29,6 +29,7 @@ class Asteroid:
             spher_to_cart(azimuth, inclination, INITIAL_DISTANCE))
         self.motion = LinearMotion(initial_location, numpy.array((0,0,0)), speed, t0)
         self.hit_mode = False
+        self.base_model.set_shader(regular_shader)
            
         # Set the initial position
         self.base_model.position(initial_location[0], 
@@ -43,8 +44,8 @@ class Asteroid:
             # Move the asteroid along the line towards the origin
             self.pos = self.motion.location(t)
             self.base_model.position(self.pos[0], self.pos[1], self.pos[2])
-            self.base_model.rotateIncX(0.2)
-            self.base_model.rotateIncY(0.3)
+            self.base_model.rotateIncX(5)
+            self.base_model.rotateIncY(9)
         else:
             # Set the explosion progress parameter
             self.hit_time = t - self.hit_t0
@@ -59,6 +60,7 @@ class Asteroid:
     def hit(self, now):
         self.hit_mode = True
         self.hit_t0 = now
+        self.hit_time = 0
         self.base_model.set_shader(self.explosion_shader)
 
     def get_base_model(self):
@@ -74,10 +76,11 @@ class AsteroidGenerator:
     #   motion_func - A function describing the motion of the object
     #   rate - Generation rate, in obj/sec
     #   angle_restricion - TBD
-    def __init__(self, asteroid_db, rate, angle_restiction, explosion_shader):
+    def __init__(self, asteroid_db, rate, angle_restiction, explosion_shader, regular_shader):
         self.rate = rate
         self.rate_range = ((1.0/self.rate)*0.8, (1.0/self.rate)*1.2)
         self.explosion_shader = explosion_shader
+        self.regular_shader = regular_shader
         self.next_gen_time = time.time()
         self.calc_next_gen_time()
         self.asteroid_model_list = asteroid_db
@@ -109,7 +112,7 @@ class AsteroidGenerator:
             speed = random.uniform(*SPEED_RANGE)
 
             # Create the asteroid object
-            ast = Asteroid(nobj, azimuth, incl, speed, now, self.explosion_shader)
+            ast = Asteroid(nobj, azimuth, incl, speed, now, self.explosion_shader, self.regular_shader)
             
             # Calculate the next generation time
             self.calc_next_gen_time()
