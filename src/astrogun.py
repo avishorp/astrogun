@@ -18,6 +18,7 @@ import pickle
 from settings import *
 import RTIMU
 import threading
+import pygame.mixer
 
 ######################################
 #### GameLevel
@@ -101,6 +102,7 @@ class GameLevel:
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
     self.active_bullets.append(b)
+    SOUNDS['shot'].play()
     
     # For all asteroids, check if the bullet hits them
     I = b.get_direction()
@@ -181,19 +183,14 @@ class GameLevel:
                                    TARGET_CENTER_POSITION[2])
         self.radar_target.draw(camera = cam2d)
 
-        #if ast.hit_mode:
-        #  if ast.hit_time > 8.0:
-        #   self.gen.return_asteroid(self.active_asteroids[astid])
-        #    del self.active_asteroids[astid]
-        #else:
-        if True:
-          if dist2_from_origin < SELF_IMPACT_RADIUS2:
-            # Reached origin, destory it
-            self.gen.return_asteroid(self.active_asteroids[astid])
-            del self.active_asteroids[astid]
-            self.self_hit = 1
-            if not self.free_play:
-              self.lives -= 1
+        if dist2_from_origin < SELF_IMPACT_RADIUS2:
+          # Reached origin, destory it
+          self.gen.return_asteroid(self.active_asteroids[astid])
+          del self.active_asteroids[astid]
+          self.self_hit = 1
+          SOUNDS['self_hit'].play()
+          if not self.free_play:
+            self.lives -= 1
       
         # Position, rotate and draw the asteroid
         ast.draw(camera = cam3d)
@@ -232,6 +229,7 @@ class GameLevel:
             del self.active_bullets[objindex]
             self.scores += 1
             self.scores_changed = True
+            SOUNDS['astro_hit'].play()
             
         elif dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it
@@ -464,6 +462,21 @@ def init_imu():
   reader.start()
   return reader
 
+def init_sounds():
+  # Init the mixer
+  pygame.mixer.init()
+  
+  # Load sounds
+  sounds =  {
+    'win': pygame.mixer.Sound(SOUNDS_DIR + '126000__xserra__campeones.wav'),
+    'shot': pygame.mixer.Sound(SOUNDS_DIR + '156895__halgrimm__a-shot.wav'),
+    'self_hit': pygame.mixer.Sound(SOUNDS_DIR + '218721__bareform__boom-bang.wav'),
+    'astro_hit': pygame.mixer.Sound(SOUNDS_DIR + '147584__cactus2003__far-off-boom.wav'),
+    'lose': pygame.mixer.Sound(SOUNDS_DIR + '178875__rocotilos__you-lose-evil.wav')
+    }
+  
+  return sounds
+
 # Setup display and initialise pi3d
 DISPLAY = pi3d.Display.create(background=(0.0, 0, 0, 1))
 DISPLAY.frames_per_second = 30
@@ -488,6 +501,9 @@ SPRITES = load_sprites()
 
 # Load Asteroid models
 ASTEROIDS = load_asteroids()
+
+# Load sounds
+SOUNDS = init_sounds()
 
 # Setup I/O
 setup_io()

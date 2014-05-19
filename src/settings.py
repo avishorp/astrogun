@@ -17,6 +17,8 @@ AZIMUTH_RANGE = (-10.0, 10.0)
 ###########################
 VAR_DIR = "./var"     # Working directory
 AST_DB_FILENAME = "asteroids_db.bin"
+MEDIA_DIR = "../media/"
+SOUNDS_DIR = MEDIA_DIR + "sounds/"
 
 #######################################
 
