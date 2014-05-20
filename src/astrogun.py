@@ -66,6 +66,7 @@ class GameLevel:
     self.scores_changed = True
     self.pause = False
     self.free_play = False
+    self.fire_button_state = 1
     self.frames = 0
     self.mode = [MODE_READY, READY_TIME]
     self.ready_text = pi3d.String(font=FONT_BALLS, 
@@ -197,6 +198,8 @@ class GameLevel:
 
       # Delete all hit asteroids, whose time has passed
       for astid in range(len(self.hit_asteroids)):
+        print (astid)
+        print(self.hit_asteroids)
         ast = self.hit_asteroids[astid]
         if ast.hit_time > 8.0:
           self.gen.return_asteroid(self.hit_asteroids[astid])
@@ -330,6 +333,13 @@ class GameLevel:
         elif (k == 27):
           break
       
+      # Check if the trigger button is pressed
+      fire_button = GPIO.input(BUTTON_FIRE_GPIO[0]) 
+      if (fire_button == 1 and self.fire_button_state == 0):
+        self.create_bullet(now)
+        pass
+      self.fire_button_state = fire_button
+      
       # Handle camera rotation
       if True: #cam_rotate:
         cam3d.reset()
@@ -407,7 +417,9 @@ def load_sprites():
 def setup_io():
   GPIO.setmode(GPIO.BCM)
   GPIO.setup(BUTTON_START_GPIO, GPIO.IN, GPIO.PUD_UP)
-  GPIO.setup(BUTTON_FIRE_GPIO, GPIO.IN, GPIO.PUD_UP)
+  GPIO.setup(BUTTON_FIRE_GPIO[0], GPIO.IN, GPIO.PUD_UP)
+  GPIO.setup(BUTTON_FIRE_GPIO[1], GPIO.OUT)
+  GPIO.output(BUTTON_FIRE_GPIO[1], 0)
   GPIO.setup(RUMBLE_FIRE_GPIO, GPIO.OUT)
 
 def load_asteroids():

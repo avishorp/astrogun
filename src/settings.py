@@ -70,7 +70,7 @@ HIT_SOUND = ''
 
 # I/O Buttons and Actuator Mappings
 BUTTON_START_GPIO = 4
-BUTTON_FIRE_GPIO = 17
+BUTTON_FIRE_GPIO = (17, 18)
 RUMBLE_FIRE_GPIO = 22
 
 
