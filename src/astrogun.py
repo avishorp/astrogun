@@ -428,6 +428,41 @@ class OpeningScreen(FullScreenImage):
       
       return True
 
+######################################
+#### EndingScreen
+######################################
+class EndingScreen(FullScreenImage):
+  
+  def __init__(self, image, sound = None, tmax = 8):
+    super(EndingScreen, self).__init__(BITMAP_DIR + image)
+    self.sound = sound
+    self.t_end = time.time() + tmax
+
+  def start(self):
+    # Call the super to create the image
+    super(EndingScreen, self).start()
+    
+    # If a sound is defined, play it
+    if self.sound is not None:
+      self.sound.play()
+
+  def process_input(self):
+    # Check if a designated number of seconds has passed since
+    # the screen was created
+    if time.time() > self.t_end:
+      return False
+
+    # Check if the START button was pressed
+    b = GPIO.input(BUTTON_START_GPIO)
+    if (b == 0):
+      return False
+      
+    k = KEYS.read()
+    if k >-1:
+      return False;
+      
+    return True
+
 
 def load_sprites():
   sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans']
@@ -552,6 +587,9 @@ IMU = init_imu()
 
 # Fetch key presses
 KEYS = pi3d.Keyboard()
+
+EndingScreen('you_lost.png', SOUNDS['lose']).start()
+EndingScreen('new_high_scores.png').start()
 
 opening = OpeningScreen()
 opening.start()
