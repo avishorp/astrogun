@@ -19,6 +19,7 @@ VAR_DIR = "./var"     # Working directory
 AST_DB_FILENAME = "asteroids_db.bin"
 MEDIA_DIR = "../media/"
 SOUNDS_DIR = MEDIA_DIR + "sounds/"
+BITMAP_DIR = MEDIA_DIR + "bitmaps/"
 
 #######################################
 
@@ -63,10 +64,6 @@ SCORE_POSITION = (-2.5, 1.45, 4.5)
 # Initial number of lives
 INITIAL_LIVES = 5
 
-# Sounds
-SHOOTING_SOUND = '../media/sounds/match3.wav'
-EXPLODE_SOUND = ''
-HIT_SOUND = ''
 
 # I/O Buttons and Actuator Mappings
 BUTTON_START_GPIO = 4

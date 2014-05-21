@@ -21,15 +21,8 @@ import threading
 import pygame.mixer
 
 ######################################
-#### GameLevel
+#### IMUReader
 ######################################
-
-# Operating modes
-MODE_READY    = 0
-MODE_READY_GO = 1
-MODE_GO       = 2
-MODE_GO_OUT   = 3
-MODE_PLAY     = 4
 
 class IMUReader(threading.Thread):
   def __init__(self, imu):
@@ -45,6 +38,16 @@ class IMUReader(threading.Thread):
         self.data = self.imu.getFusionData()
       time.sleep(self.wait_s)
 
+######################################
+#### GameLevel
+######################################
+
+# Operating modes
+MODE_READY    = 0
+MODE_READY_GO = 1
+MODE_GO       = 2
+MODE_GO_OUT   = 3
+MODE_PLAY     = 4
 
 class GameLevel:
   def __init__(self, sprites):
@@ -356,16 +359,48 @@ class GameLevel:
 
 
 ######################################
+#### FullScreenImage
+######################################
+class FullScreenImage(object):
+  
+  def __init__(self, image_filename):
+    # Create a sprite from the image file
+    self.bg = pi3d.ImageSprite(image_filename, shader = shader_uv_flat,
+                               w = 1.6, h = 1)
+
+    # Position the openinig screen graphics
+    self.bg.position(0, 0, 4)
+    self.bg.scale(3.7, 3.7, 1)
+    
+  def start(self):
+    while DISPLAY.loop_running():
+      # Draw the background
+      self.bg.draw(camera = cam2d)
+      
+      # Additional drawing
+      self.draw(camera = cam2d)
+
+      # Process input
+      if not self.process_input():
+        break
+
+  # Default additional draw - nothing
+  def draw(self, camera):
+    pass
+  
+  # Default input processing - always continue
+  def process_input(self):
+    return True
+
+######################################
 #### OpeningScreen
 ######################################
-class OpeningScreen:
+class OpeningScreen(FullScreenImage):
   
   def __init__(self):
-    # Position the openinig screen graphics
-    self.spr = SPRITES['opening']
-    self.spr.position(0, 0, 4)
-    self.spr.scale(3.7, 3.7, 1)
+    super(OpeningScreen, self).__init__(BITMAP_DIR + "opening.png")
     
+    # Create a text string
     self.text = pi3d.String(font=FONT_COMPUTER, 
                             string = "Press the START Button to Begin",
                             x = 0, y = .5, z = 3.9,
@@ -374,36 +409,28 @@ class OpeningScreen:
     self.text_ts_delta = 0.1
     self.text_ts = 0
     
-  def start(self):
-    while DISPLAY.loop_running():
-      # Draw the opening screen
-      self.spr.draw(camera = cam2d)
+  def draw(self, camera):
+    # Set the transparency of the text
+    self.text_ts += self.text_ts_delta
+    self.text.set_custom_data(17, [abs(math.sin(self.text_ts))])
 
-      self.text_ts += self.text_ts_delta
-      #if self.text_ts > 1.0:
-      #  self.text_ts = 1.0
-      #  self.text_ts_delta = -self.text_ts_delta
+    self.text.draw(camera = cam2d)
 
-      #if self.text_ts < 0.0:
-      #  self.text_ts = 0.0
-      #  self.text_ts_delta = -self.text_ts_delta
-
-      self.text.set_custom_data(17, [abs(math.sin(self.text_ts))])
-
-      self.text.draw(camera = cam2d)
-
+  def process_input(self):
       # Check if the START button was pressed
       b = GPIO.input(BUTTON_START_GPIO)
       if (b == 0):
-        break
+        return False
       
       k = KEYS.read()
       if k >-1:
-        break;
+        return False;
+      
+      return True
 
 
 def load_sprites():
-  sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans', 'opening']
+  sprite_filenames = ['sight', 'radar_panel', 'radar_target', 'life_full', 'life_empty', 'trans']
   sprites = {}
   sh = shader_uv_flat
   
