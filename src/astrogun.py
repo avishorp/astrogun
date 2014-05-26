@@ -38,6 +38,13 @@ class IMUReader(threading.Thread):
         self.data = self.imu.getFusionData()
       time.sleep(self.wait_s)
 
+class FakeIMUReader:
+  def __init__(self):
+    self.data = (0, 0, 0)
+
+  def start(self):
+    pass
+
 ######################################
 #### GameLevel
 ######################################
@@ -527,8 +534,8 @@ def init_imu():
   print("IMU Name: " + imu.IMUName())
   
   if (not imu.IMUInit()):
-    print("IMU Init Failed");
-    sys.exit(1)
+    print("IMU Init Failed - using fake IMU");
+    return FakeIMUReader()
   else:
     print("IMU Init Succeeded");
     
