@@ -246,14 +246,15 @@ class GameLevel:
           ast_distance2 = dest[1].distance2()
           if dist2_from_origin > ast_distance2:
             # Bullet hit the asteroid
-
+            SOUNDS['astro_hit'].play()
             del self.active_asteroids[dest[0]]
             dest[1].hit(now)
             self.hit_asteroids.append(dest[1])
             del self.active_bullets[objindex]
             self.scores += 1
             self.scores_changed = True
-            SOUNDS['astro_hit'].play()
+            self.gen.change_rate(3)
+
             
         elif dist2_from_origin > BULLET_DISTANCE2:
           # Reached final distance, destroy it

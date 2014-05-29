@@ -5,7 +5,7 @@ import numpy
 
 # Asteroid generation parametrs
 ###############################
-SPEED_RANGE = (0.1, 0.3)
+SPEED_RANGE = (0.05, 0.2)
 INCLINATION_RANGE = (10.0, 60.0)
 AZIMUTH_RANGE = (-180.0, 180.0)
 INITIAL_DISTANCE = 50.0
