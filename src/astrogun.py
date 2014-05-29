@@ -19,6 +19,7 @@ from settings import *
 import RTIMU
 import threading
 import pygame.mixer
+from MirrorFont import MirrorFont
 
 ######################################
 #### IMUReader
@@ -81,13 +82,13 @@ class GameLevel:
     self.mode = [MODE_READY, READY_TIME]
     self.fire_rumble = 0
     self.ready_text = pi3d.String(font=FONT_BALLS, 
-                                  string = "READY?",
-                                  x = -.3, y = 1, z = 3.9,
+                                  string = "READY?"[::-1],
+                                  x = -.3, y = 0.8, z = 3.9,
                                   sx=0.018, sy=0.018)
     self.ready_text.set_shader(shader_uv_flat)
     self.go_text = pi3d.String(font=FONT_BALLS, 
-                               string = "GO!",
-                               x = -.2, y = 0.8, z = 3.9 + 5*.5,
+                               string = "GO!"[::-1],
+                               x = -.2, y = 0.6, z = 3.9 + 5*.5,
                                sx=0.018, sy=0.018)
     self.go_text.set_shader(shader_uv_flat)
     
@@ -273,8 +274,9 @@ class GameLevel:
 
       # Draw scores
       if self.scores_changed:
+        score_string = "%03d" % self.scores
         self.scores_str = pi3d.String(font=FONT_COMPUTER, 
-                                      string="%03d" % self.scores,
+                                      string=score_string[::-1],
                                       x = SCORE_POSITION[0],
                                       y = SCORE_POSITION[1],
                                       z = SCORE_POSITION[2],
@@ -425,7 +427,7 @@ class OpeningScreen(FullScreenImage):
     
     # Create a text string
     self.text = pi3d.String(font=FONT_COMPUTER, 
-                            string = "Press the START Button to Begin",
+                            string = "Press the START Button to Begin"[::-1],
                             x = 0, y = .5, z = 3.9,
                             sx=0.005, sy=0.005)
     self.text.set_shader(shader_uv_flat)
@@ -588,9 +590,9 @@ shader_mat_flat = pi3d.Shader('mat_flat')
 shader_explosion = pi3d.Shader("uv_flat_explode")
 
 # Load Fonts
-FONT_ARIAL = pi3d.Font("../media/fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
-FONT_COMPUTER = pi3d.Font("../media/fonts/Computerfont.ttf", (0,0,255,255))
-FONT_BALLS = pi3d.Font("../media/fonts/BallsoOnTheRampage.ttf", (50,70,120,255))
+FONT_ARIAL = MirrorFont("../media/fonts/FreeMonoBoldOblique.ttf", (221,0,170,255))
+FONT_COMPUTER = MirrorFont("../media/fonts/Computerfont.ttf", (0,0,255,255))
+FONT_BALLS = MirrorFont("../media/fonts/BallsoOnTheRampage.ttf", (50,70,120,255))
 
 # Load Sprites
 SPRITES = load_sprites()
