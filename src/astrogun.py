@@ -344,7 +344,7 @@ class GameLevel:
           break
       
       # Check if the trigger button is pressed
-      fire_button = GPIO.input(BUTTON_FIRE_GPIO[0]) 
+      fire_button = GPIO.input(BUTTON_FIRE_GPIO) 
       if (fire_button == 1 and self.fire_button_state == 0):
         self.create_bullet(now)
         pass
@@ -484,11 +484,9 @@ def load_sprites():
 
 
 def setup_io():
-  GPIO.setmode(GPIO.BCM)
+  GPIO.setmode(GPIO.BOARD)
   GPIO.setup(BUTTON_START_GPIO, GPIO.IN, GPIO.PUD_UP)
-  GPIO.setup(BUTTON_FIRE_GPIO[0], GPIO.IN, GPIO.PUD_UP)
-  GPIO.setup(BUTTON_FIRE_GPIO[1], GPIO.OUT)
-  GPIO.output(BUTTON_FIRE_GPIO[1], 0)
+  GPIO.setup(BUTTON_FIRE_GPIO, GPIO.IN, GPIO.PUD_UP)
   GPIO.setup(RUMBLE_FIRE_GPIO, GPIO.OUT)
 
 def load_asteroids():
@@ -613,7 +611,6 @@ except:
   #mykeys.close()
   DISPLAY.destroy()
   IMU.running = False
-  print(level.gen.asteroid_model_list)
   raise
 
 IMU.running = False
