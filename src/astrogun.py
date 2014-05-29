@@ -81,6 +81,7 @@ class GameLevel:
     self.frames = 0
     self.mode = [MODE_READY, READY_TIME]
     self.fire_rumble = 0
+    self.dbg = []
     self.ready_text = pi3d.String(font=FONT_BALLS, 
                                   string = "READY?"[::-1],
                                   x = -.3, y = 0.8, z = 3.9,
@@ -181,6 +182,7 @@ class GameLevel:
         if ast is not None:
           self.active_asteroids[self.asteroid_id] = ast
           self.asteroid_id += 1
+          self.dbg.append((ast.azimuth, ast.inclination, self.azimuth))
     
       # Draw all active asteroid
       for astid, ast in self.active_asteroids.items():
@@ -191,7 +193,7 @@ class GameLevel:
         
         # Draw the target on the radar view
         dist_from_origin = (math.sqrt(dist2_from_origin)/INITIAL_DISTANCE)*TARGET_DIST_SCALE
-        angle = math.radians(ast.azimuth + self.azimuth + 90)
+        angle = math.radians(self.azimuth - ast.azimuth + 90)
         rtx = dist_from_origin*math.cos(angle)
         rty = dist_from_origin*math.sin(angle)
         self.radar_target.position(TARGET_CENTER_POSITION[0]+rtx, 
@@ -633,5 +635,6 @@ except:
   raise
 
 IMU.running = False
+print(level.dbg)
 
 

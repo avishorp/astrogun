@@ -10,8 +10,8 @@ INCLINATION_RANGE = (10.0, 60.0)
 AZIMUTH_RANGE = (-180.0, 180.0)
 INITIAL_DISTANCE = 50.0
 
-INCLINATION_RANGE = (1.0, 5.0)
-AZIMUTH_RANGE = (-10.0, 10.0)
+INCLINATION_RANGE = (0.0, 30.0)
+AZIMUTH_RANGE = (0.0, 360.0)
 
 # Directories and Filenames
 ###########################
