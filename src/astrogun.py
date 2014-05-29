@@ -79,6 +79,7 @@ class GameLevel:
     self.fire_button_state = 1
     self.frames = 0
     self.mode = [MODE_READY, READY_TIME]
+    self.fire_rumble = 0
     self.ready_text = pi3d.String(font=FONT_BALLS, 
                                   string = "READY?",
                                   x = -.3, y = 1, z = 3.9,
@@ -353,8 +354,16 @@ class GameLevel:
       fire_button = GPIO.input(BUTTON_FIRE_GPIO) 
       if (fire_button == 1 and self.fire_button_state == 0):
         self.create_bullet(now)
+        self.fire_rumble = RUMBLE_TIME
+        GPIO.output(RUMBLE_FIRE_GPIO, 1)
         pass
       self.fire_button_state = fire_button
+
+      # Handle fire rumble
+      if self.fire_rumble > 0:
+        self.fire_rumble -= 1
+        if self.fire_rumble == 0:
+          GPIO.output(RUMBLE_FIRE_GPIO, 0)
       
       # Handle camera rotation
       if True: #cam_rotate:
@@ -495,6 +504,7 @@ def setup_io():
   GPIO.setup(BUTTON_START_GPIO, GPIO.IN, GPIO.PUD_UP)
   GPIO.setup(BUTTON_FIRE_GPIO, GPIO.IN, GPIO.PUD_UP)
   GPIO.setup(RUMBLE_FIRE_GPIO, GPIO.OUT)
+  GPIO.output(RUMBLE_FIRE_GPIO, 0)
 
 def load_asteroids():
   # Check if a pre-loaded database exists
