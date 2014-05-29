@@ -372,8 +372,9 @@ class FullScreenImage(object):
   
   def __init__(self, image_filename):
     # Create a sprite from the image file
+    print("FullScreenImage " + image_filename)
     self.bg = pi3d.ImageSprite(image_filename, shader = shader_uv_flat,
-                               w = 1.6, h = 1)
+                               w = 1.6, h = 1, flipx=True, z= 1)
 
     # Position the openinig screen graphics
     self.bg.position(0, 0, 4)
@@ -593,8 +594,8 @@ IMU = init_imu()
 # Fetch key presses
 KEYS = pi3d.Keyboard()
 
-EndingScreen('you_lost.png', SOUNDS['lose']).start()
-EndingScreen('new_high_scores.png').start()
+#EndingScreen('you_lost.png', SOUNDS['lose']).start()
+#EndingScreen('new_high_scores.png').start()
 
 opening = OpeningScreen()
 opening.start()
