@@ -214,13 +214,7 @@ class GameLevel:
         ast.draw(camera = cam3d)
 
       # Delete all hit asteroids, whose time has passed
-      hit_asteroids_new = []
-      for astid in range(len(self.hit_asteroids)):
-        ast = self.hit_asteroids[astid]
-        if ast.hit_time < 8.0:
-          hit_asteroids_new.append(ast)
-          
-      self.hit_asteroids = hit_asteroids_new
+      self.hit_asteroids = filter(lambda ast: ast.hit_time < 8.0, self.hit_asteroids)
 
 
       # Draw all hit asteroids
@@ -228,7 +222,8 @@ class GameLevel:
         ast.move(now)
         if ast.hit_time > 8.0:
           self.hit_asteroids[0]
-          
+
+        cam3d.was_moved = True;
         ast.draw(camera = cam3d)
 
       # Draw all active bullets
