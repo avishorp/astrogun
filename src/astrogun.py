@@ -81,6 +81,7 @@ class GameLevel:
     self.frames = 0
     self.mode = [MODE_READY, READY_TIME]
     self.fire_rumble = 0
+    self.quit_app = False
     self.dbg = []
     self.ready_text = pi3d.String(font=FONT_BALLS, 
                                   string = "READY?"[::-1],
@@ -352,6 +353,7 @@ class GameLevel:
         elif k==ord(' '):
           self.create_bullet(now)
         elif (k == 27):
+          self.quit_app = True
           break
       
       # Check if the trigger button is pressed
@@ -463,15 +465,19 @@ class EndingScreen(FullScreenImage):
   def __init__(self, image, sound = None, tmax = 8):
     super(EndingScreen, self).__init__(BITMAP_DIR + image)
     self.sound = sound
-    self.t_end = time.time() + tmax
+    self.tmax = tmax
 
   def start(self):
-    # Call the super to create the image
-    super(EndingScreen, self).start()
-    
+    # End time
+    self.t_end = time.time() + self.tmax
+
     # If a sound is defined, play it
     if self.sound is not None:
       self.sound.play()
+
+    # Call the super to create the image
+    super(EndingScreen, self).start()    
+    
 
   def process_input(self):
     # Check if a designated number of seconds has passed since
@@ -614,27 +620,51 @@ IMU = init_imu()
 # Fetch key presses
 KEYS = pi3d.Keyboard()
 
-#EndingScreen('you_lost.png', SOUNDS['lose']).start()
-#EndingScreen('new_high_scores.png').start()
+# Read the current high scores
+try:
+  high_score = int(file(HIGH_SCORE_FILENAME).readline())
+except:
+  high_score = 0
+
+you_lose_screen = EndingScreen('you_lost.png', SOUNDS['lose'])
+high_score_screen = EndingScreen('new_high_scores.png')
 
 opening = OpeningScreen()
-opening.start()
+
+while(True):
+  # Wait until the user presses "start"
+  opening.start()
   
-level = GameLevel(SPRITES)
-try:
+  # Start the game
+  level = GameLevel(SPRITES)
   level.play(KEYS)
-  
-  KEYS.close()
-  DISPLAY.destroy()
-  IMU.running = False
 
-except:
-  #mykeys.close()
-  DISPLAY.destroy()
-  IMU.running = False
-  raise
+  # Check if "ESC" button was pressed
+  if level.quit_app:
+    break
 
+  # Check if a new high score record has been made
+  if (level.scores > high_score):
+    # Write the new high score to disk
+    file(HIGH_SCORE_FILENAME, 'w').write(str(level.scores) + "\n")
+    high_score = level.scores
+    high_score_screen.start()
+
+  else:
+    # Show the "You Lose" screen
+    you_lose_screen.start()
+
+# Cleanup  
+KEYS.close()
+DISPLAY.destroy()
 IMU.running = False
+
+#except:
+#mykeys.close()
+#  DISPLAY.destroy()
+#  IMU.running = False
+#  raise
+
 print(level.dbg)
 
 

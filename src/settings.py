@@ -20,6 +20,7 @@ AST_DB_FILENAME = "asteroids_db.bin"
 MEDIA_DIR = "../media/"
 SOUNDS_DIR = MEDIA_DIR + "sounds/"
 BITMAP_DIR = MEDIA_DIR + "bitmaps/"
+HIGH_SCORE_FILENAME = VAR_DIR + "/high_score"
 
 #######################################
 
