@@ -30,7 +30,7 @@ class IMUReader(threading.Thread):
     self.imu = imu
     self.data = (0, 0, 0)
     self.running = True;
-    self.wait_s = imu.IMUGetPollInterval()*1.0/1000.0
+    self.wait_s = imu.IMUGetPollInterval()/1000.0
     
   def run(self):
     while(self.running):
@@ -110,6 +110,9 @@ class GameLevel:
     self.life_empty = sprites['life_empty']
     self.life_empty.scale(*LIFE_BAR_SCALE)
 
+    self.dir_gauge = pi3d.Cone(z=4.0)
+    self.dir_gauge.set_shader(shader_uv_flat)
+    
   def create_bullet(self, now):
     b = self.bullet_gen.generate(self.azimuth, self.incl, now)
     self.active_bullets.append(b)
@@ -314,21 +317,24 @@ class GameLevel:
           self.mode = [MODE_PLAY, 0]        
       
       # Debugging
-      #debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
-      #debug_str_pi = pi3d.String(font=FONT_ARIAL, string=debug_str,
-      #                           x = 0, y = 0, z = 5, sx=0.005, sy=0.005)
-      #debug_str_pi.set_shader(shader_uv_flat)
-      #debug_str_pi.draw(camera = cam2d)
+      if False:
+        debug_str = "az: %f incl: %f" % (self.azimuth, self.incl)
+        debug_str_pi = pi3d.String(font=FONT_ARIAL, string=debug_str,
+                                   x = 0, y = 0, z = 5, sx=0.005, sy=0.005)
+        debug_str_pi.set_shader(shader_uv_flat)
+        debug_str_pi.draw(camera = cam2d)
+        
+        self.dir_gauge.rotateToZ(math.degrees(IMU.data[0]))
+        self.dir_gauge.draw(camera = cam2d)
 
       # Read the IMU angles
       imux, imuy, imuz = IMU.data
-      self.incl = -math.degrees(imuy)
-      self.azimuth = math.degrees(imuz)
+      self.incl = -math.degrees(imux)
+      self.azimuth = -math.degrees(imuz)
       cam_rotate = True
-      
+
       # TEMPORARY CODE
       k = keys.read()
-      cam_rotate = False
       if k >-1:
         if k == ord('p'):
           # Toggle pause

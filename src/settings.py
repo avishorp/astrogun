@@ -5,7 +5,7 @@ import numpy
 
 # Asteroid generation parametrs
 ###############################
-SPEED_RANGE = (0.2, 0.4)
+SPEED_RANGE = (0.1, 0.3)
 INCLINATION_RANGE = (10.0, 60.0)
 AZIMUTH_RANGE = (-180.0, 180.0)
 INITIAL_DISTANCE = 50.0
@@ -48,18 +48,18 @@ BULLET_SPEED = 2.0
 SIGHT_POSITION = (0, 0, 4.8)
 SIGHT_SCALE = (1, 1, 1)
 
-RADAR_PANEL_POSITION = (2, -1, 4.8)
+RADAR_PANEL_POSITION = (-2, -1, 4.8)
 RADAR_PANEL_SCALE = (1.3, 1.3, 1)
 
-TARGET_CENTER_POSITION = (2-0.03, -1+0.02, 4.7)
+TARGET_CENTER_POSITION = (-(2-0.03), -1+0.02, 4.7)
 TARGET_SCALE = (0.2, 0.2, 1)
 TARGET_DIST_SCALE = 0.6
 
 LIFE_BAR_SCALE = (0.28, 0.08, 1)
-LIFE_BAR_POSITION = (-3.2, 1.3, 4.7) # The lowest bar
+LIFE_BAR_POSITION = (3.2, 1.3, 4.7) # The lowest bar
 LIFE_BAR_STEP = 0.1
 
-SCORE_POSITION = (-2.5, 1.45, 4.5)
+SCORE_POSITION = (2.5, 1.45, 4.5)
 
 # Initial number of lives
 INITIAL_LIVES = 5
