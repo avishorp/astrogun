@@ -645,6 +645,7 @@ while(True):
   # Start the game
   level = GameLevel(SPRITES)
   level.play(KEYS)
+  GPIO.output(RUMBLE_FIRE_GPIO, 0)
 
   # Check if "ESC" button was pressed
   if level.quit_app:

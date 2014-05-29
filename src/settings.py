@@ -76,4 +76,4 @@ RUMBLE_FIRE_GPIO = 13
 READY_TIME = 50  # The time "READY" is displayed
 GO_TIME    = 25  # The time "GO" is displayed
 
-RUMBLE_TIME = 2
+RUMBLE_TIME = 3

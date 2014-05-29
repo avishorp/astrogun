@@ -88,7 +88,7 @@ class AsteroidGenerator:
     # Change the asteroid generation rate by a given percent
     def change_rate(self, percent):
         self.rate *= 1.0 + (percent*1.0 / 100)
-        self.rate_range = ((1.0/self.rate)*0.8, (1.0/self.rate)*1.2)
+        self.rate_range = ((1.0/self.rate)*0.9, (1.0/self.rate)*1.2)
 
     # Calculate the next time in which an object should be generated
     def calc_next_gen_time(self):
