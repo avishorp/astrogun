@@ -204,7 +204,6 @@ class GameLevel:
 
         if dist2_from_origin < SELF_IMPACT_RADIUS2:
           # Reached origin, destory it
-          self.gen.return_asteroid(self.active_asteroids[astid])
           del self.active_asteroids[astid]
           self.self_hit = 1
           SOUNDS['self_hit'].play()
@@ -215,16 +214,14 @@ class GameLevel:
         ast.draw(camera = cam3d)
 
       # Delete all hit asteroids, whose time has passed
+      hit_asteroids_new = []
       for astid in range(len(self.hit_asteroids)):
-        # There's a very weired bug here and this is
-        # an UGLY hack!
-        try:
-          ast = self.hit_asteroids[astid]
-          if ast.hit_time > 8.0:
-            self.gen.return_asteroid(self.hit_asteroids[astid])
-            del self.hit_asteroids[astid]
-        except IndexError:
-          pass
+        ast = self.hit_asteroids[astid]
+        if ast.hit_time < 8.0:
+          hit_asteroids_new.append(ast)
+          
+      self.hit_asteroids = hit_asteroids_new
+
 
       # Draw all hit asteroids
       for ast in self.hit_asteroids:
@@ -253,7 +250,7 @@ class GameLevel:
             del self.active_bullets[objindex]
             self.scores += 1
             self.scores_changed = True
-            self.gen.change_rate(3)
+            self.gen.change_rate(5)
 
             
         elif dist2_from_origin > BULLET_DISTANCE2:
@@ -391,6 +388,10 @@ class GameLevel:
     # Calculate average FPS
     end_time = time.time()
     self.FPS = (1.0*self.frames)/(1.0*(end_time - start_time))
+
+  def cleanup(self):
+    GPIO.output(RUMBLE_FIRE_GPIO, 0)
+    DISPLAY.set_background(0.0,0,0,1.0)
 
 
 ######################################
@@ -645,7 +646,7 @@ while(True):
   # Start the game
   level = GameLevel(SPRITES)
   level.play(KEYS)
-  GPIO.output(RUMBLE_FIRE_GPIO, 0)
+  level.cleanup()
 
   # Check if "ESC" button was pressed
   if level.quit_app:

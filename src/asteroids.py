@@ -108,8 +108,7 @@ class AsteroidGenerator:
             # Note: It should have been cloned, but there is a problem
             # with clone()
             ast_num = random.randint(0,len(self.asteroid_model_list)-2)
-            nobj = self.asteroid_model_list[ast_num]
-            del self.asteroid_model_list[ast_num]
+            nobj = self.asteroid_model_list[ast_num].clone()
             
             # Select an incident angle and speed
             azimuth = random.uniform(*AZIMUTH_RANGE)
@@ -130,5 +129,6 @@ class AsteroidGenerator:
             return None
 
     def return_asteroid(self, ast):
+        return
         self.asteroid_model_list.append(ast.get_base_model())
 
