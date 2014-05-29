@@ -216,12 +216,15 @@ class GameLevel:
 
       # Delete all hit asteroids, whose time has passed
       for astid in range(len(self.hit_asteroids)):
-        print (astid)
-        print(self.hit_asteroids)
-        ast = self.hit_asteroids[astid]
-        if ast.hit_time > 8.0:
-          self.gen.return_asteroid(self.hit_asteroids[astid])
-          del self.hit_asteroids[astid]
+        # There's a very weired bug here and this is
+        # an UGLY hack!
+        try:
+          ast = self.hit_asteroids[astid]
+          if ast.hit_time > 8.0:
+            self.gen.return_asteroid(self.hit_asteroids[astid])
+            del self.hit_asteroids[astid]
+        except IndexError:
+          pass
 
       # Draw all hit asteroids
       for ast in self.hit_asteroids:
@@ -380,7 +383,10 @@ class GameLevel:
       # If no more lives left, terminate the game
       if self.lives == 0:
         break
-      
+
+    # Make sure rumble is off
+      GPIO.output(RUMBLE_FIRE_GPIO, 0)
+
     # Calculate average FPS
     end_time = time.time()
     self.FPS = (1.0*self.frames)/(1.0*(end_time - start_time))
