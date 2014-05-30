@@ -688,10 +688,23 @@ class Shape(Loadable):
       opy = py
 
     return Buffer(self, verts, tex_coords, idx, norms)
+
+  def clone(self, camera = None, light = None):
+    """create a new Model but buf points to same array of Buffers
+    so much quicker to create than reloading all the vertices etc
+    """
+    newModel = Model(camera, light, name = "__clone__", x=self.unif[0], y=self.unif[1], z=self.unif[2],
+               rx=self.unif[3], ry=self.unif[4], rz=self.unif[5], sx=self.unif[6], sy=self.unif[7], sz=self.unif[8],
+               cx=self.unif[9], cy=self.unif[10], cz=self.unif[11])
+    newModel.buf = self.buf
+    #newModel.vGroup = self.vGroup
+    newModel.shader = self.shader
+    newModel.textures = self.textures
+    return newModel
   
   def __getstate__(self):
     return {
-      'unif': list(self.unif),
+      'unif': array(self.unif),
       'childModel': self.childModel,
       'children': self.children,
       'name': self.name,
@@ -700,7 +713,7 @@ class Shape(Loadable):
       }
   
   def __setstate__(self, state):
-    unif_tuple = tuple(state['unif'])
+    unif_tuple = tuple(state['unif'].tolist())
     self.unif = (ctypes.c_float * 60)(*unif_tuple)
     self.childModel = state['childModel']
     self.name = state['name']
@@ -709,7 +722,6 @@ class Shape(Loadable):
     self.textures = state['textures']
     self.opengl_loaded = False
     self.disk_loaded = True
-    self._camera = None
     self.__init_matrices()
 
 

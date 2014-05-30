@@ -36,7 +36,7 @@ class Texture(Loadable):
   Allowed widths 4, 8, 16, 32, 48, 64, 72, 96, 128, 144, 192, 256, 288,
   384, 512, 576, 640, 720, 768, 800, 960, 1024, 1080, 1920
   """
-  def __init__(self, file_string, blend=False, flip=False, size=0,
+  def __init__(self, file_string, blend=False, flip=False, flipx=False, size=0,
                defer=DEFER_TEXTURE_LOADING, mipmap=True):
     """
     Arguments:
@@ -47,7 +47,9 @@ class Texture(Loadable):
         by the shader. If set to true then this texture needs to be
         drawn AFTER other objects that are FURTHER AWAY
       *flip*
-        flips the image
+        flips the image on the Y axis (top-bottom)
+      *flipx*
+        flips the image on the X axis (left-right)
       *size*
         to resize image to
       *defer*
@@ -68,6 +70,7 @@ class Texture(Loadable):
       self.file_string = sys.path[0] + '/' + file_string
     self.blend = blend
     self.flip = flip
+    self.flipx = flipx
     self.size = size
     self.mipmap = mipmap
     self.byte_size = 0
@@ -133,6 +136,9 @@ class Texture(Loadable):
 
     if self.flip:
       im = im.transpose(Image.FLIP_TOP_BOTTOM)
+
+    if self.flipx:
+      im = im.transpose(Image.FLIP_LEFT_RIGHT)
 
     RGBs = 'RGBA' if self.alpha else 'RGB'
     self.image = im.convert(RGBs).tostring('raw', RGBs)

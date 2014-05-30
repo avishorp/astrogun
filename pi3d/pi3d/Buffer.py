@@ -274,7 +274,7 @@ class Buffer(Loadable):
   # Implement pickle/unpickle support
   def __getstate__(self):
     return {
-      'unib': list(self.unib),
+      'unib': np.array(self.unib),
       'vertices': self.vertices,
       'normals': self.normals,
       'tex_coords': self.tex_coords,
@@ -284,7 +284,7 @@ class Buffer(Loadable):
       }
   
   def __setstate__(self, state):
-    unib_tuple = tuple(state['unib'])
+    unib_tuple = tuple(state['unib'].tolist())
     self.unib = (ctypes.c_float * 12)(*unib_tuple)
     self.vertices = state['vertices']
     self.normals = state['normals']
