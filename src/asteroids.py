@@ -94,6 +94,9 @@ class AsteroidGenerator:
     def calc_next_gen_time(self):
         self.next_gen_time = self.next_gen_time + random.uniform(*(self.rate_range))
 
+    def reset(self):
+        self.next_gen_time = time.time()
+    
     # Generates new asteroid.
     # The function may be called at any desirable rate. It may return either
     # None, if no object should be created; or a tuple containing the new

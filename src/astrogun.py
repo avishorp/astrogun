@@ -159,6 +159,7 @@ class GameLevel:
 
   def play(self, keys):
     now = time.time()
+    self.gen.reset()
     start_time = now
     imux = 0
     imuy = 0
@@ -178,7 +179,7 @@ class GameLevel:
           DISPLAY.set_background(0.0,0,0,1.0)
           
       # (possibly) generate a new asteroid
-      if not self.pause:
+      if not self.pause and self.mode[0] == MODE_PLAY:
         ast = self.gen.generate_asteroid(now)
         if ast is not None:
           self.active_asteroids[self.asteroid_id] = ast
